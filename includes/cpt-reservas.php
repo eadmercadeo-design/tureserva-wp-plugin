@@ -36,7 +36,7 @@ function tureserva_register_cpt_reservas() {
         'public'             => false,
         'show_ui'            => true,
         'show_in_menu' => 'tureserva_menu_reservas',
-        'menu_position'      => 5,
+        'menu_position'      => 7,
         'menu_icon'          => 'dashicons-calendar-alt',
         'supports'           => array( 'title', 'custom-fields' ),
         'capability_type'    => 'post',
@@ -46,7 +46,7 @@ function tureserva_register_cpt_reservas() {
 
     register_post_type( 'tureserva_reservas', $args );
 }
-add_action( 'init', 'tureserva_register_cpt_reservas', 5 );
+add_action( 'init', 'tureserva_register_cpt_reservas', 7 );
 
 // =======================================================
 // 🧾 PERSONALIZACIÓN DE COLUMNAS EN EL ADMIN

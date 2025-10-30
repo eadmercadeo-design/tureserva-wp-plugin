@@ -1,11 +1,13 @@
 <?php
 /**
+ * ==========================================================
  * Plugin Name: TuReserva – Sistema de Reservas Hoteleras
  * Description: Sistema integral de gestión hotelera con alojamientos, tarifas, temporadas, reservas, servicios, notificaciones automáticas y sincronización cloud. Inspirado en MotoPress.
  * Version: 0.3.2
  * Author: Edwin Duarte
  * Text Domain: tureserva
  * Domain Path: /languages
+ * ==========================================================
  */
 
 if ( ! defined( 'ABSPATH' ) ) exit; // 🚫 Evita acceso directo
@@ -67,10 +69,14 @@ function tureserva_init() {
     require_once TURESERVA_PATH . 'core/core-reports.php';
     require_once TURESERVA_PATH . 'core/core-api.php';
     require_once TURESERVA_PATH . 'core/core-auth.php';
-    require_once TURESERVA_PATH . 'core/core-sync.php';
+    require_once TURESERVA_PATH . 'core/core-sync.php'; // ☁️ Sincronización Supabase
     require_once TURESERVA_PATH . 'core/core-cron.php';
     require_once TURESERVA_PATH . 'core/core-payments.php';
 
+    // ===============================
+    // ⚙️ Panel Administrativo (Integraciones)
+    // ===============================
+    require_once TURESERVA_PATH . 'admin/panel-supabase.php'; // ⚙️ Configuración Cloud
 
     // ===============================
     // 🧱 Shortcodes (Front-End)
@@ -105,9 +111,9 @@ function tureserva_on_activate() {
     // =======================================================
     // ⚙️ CONFIGURACIÓN INICIAL DE NOTIFICACIONES Y MENSAJERÍA
     // =======================================================
-    update_option( 'tureserva_admin_email', 'reservas@tuhotel.com' );           // Correo de recepción
-    update_option( 'tureserva_from_name', 'TuReserva Hotel' );                  // Nombre remitente
-    update_option( 'tureserva_from_email', 'no-reply@tuhotel.com' );            // Correo remitente
+    update_option( 'tureserva_admin_email', 'reservas@tuhotel.com' );           
+    update_option( 'tureserva_from_name', 'TuReserva Hotel' );                  
+    update_option( 'tureserva_from_email', 'no-reply@tuhotel.com' );            
     update_option( 'tureserva_whatsapp_api_url', 'https://graph.facebook.com/v19.0/MY_NUMBER/messages' );
     update_option( 'tureserva_whatsapp_token', 'TOKEN_DE_ACCESO' );
 }
@@ -144,12 +150,15 @@ register_deactivation_hook( __FILE__, 'tureserva_on_deactivate' );
  * │   ├── core-reports.php
  * │   ├── core-api.php
  * │   ├── core-auth.php
- * │   ├── core-sync.php
+ * │   ├── core-sync.php       ☁️ Conexión y sincronización Supabase
  * │   └── core-cron.php
+ * ├── admin/
+ * │   └── panel-supabase.php  ⚙️ Configuración Cloud desde el dashboard
  * ├── includes/
  * │   ├── cpt-*.php, taxonomías, metaboxes, menús
  * ├── shortcodes/
- * │   └── shortcode-buscador.php
+ * │   ├── shortcode-buscador.php
+ * │   └── shortcode-pago.php
  * ├── assets/
  * │   ├── js/
  * │   └── css/

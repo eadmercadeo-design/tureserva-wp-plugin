@@ -89,4 +89,52 @@ if ( ! function_exists( 'tureserva_create_stripe_payment' ) ) {
                     '_tureserva_reserva_id'     => $reserva_id,
                     '_tureserva_cliente_nombre' => $cliente_nombre,
                     '_tureserva_pago_estado'    => 'pagado',
+                    '_tureserva_pago_monto'     => $amount,
+                    '_tureserva_pago_moneda'    => $currency,
+                    '_tureserva_pago_id'        => $body['id'],
+                    '_tureserva_metodo'         => 'Stripe',
+                    '_tureserva_fecha'          => current_time( 'mysql' ),
+                ),
+            ));
+
+            if ( $post_id ) {
+                error_log('[TuReserva Payments] ✅ Pago registrado (#' . $post_id . ')');
+            }
+
+            return true;
+
+        } else {
+            // Error en la respuesta de Stripe
+            $error_msg = $body['error']['message'] ?? 'Error desconocido en Stripe.';
+            error_log('[TuReserva Payments] ❌ ' . $error_msg);
+            return false;
+        }
+    }
+}
+
+// =======================================================
+// 🧾 MANEJADOR DE PAGOS DESDE AJAX
+// =======================================================
+if ( ! function_exists( 'tureserva_ajax_procesar_pago' ) ) {
+    function tureserva_ajax_procesar_pago() {
+
+        if ( ! isset( $_POST['reserva_id'], $_POST['token'], $_POST['amount'] ) ) {
+            wp_send_json_error( 'Datos incompletos.' );
+        }
+
+        $reserva_id = intval( $_POST['reserva_id'] );
+        $token      = sanitize_text_field( $_POST['token'] );
+        $amount     = floatval( $_POST['amount'] );
+
+        $resultado = tureserva_create_stripe_payment( $reserva_id, $amount, 'usd', $token );
+
+        if ( $resultado ) {
+            wp_send_json_success( 'Pago procesado con éxito.' );
+        } else {
+            wp_send_json_error( 'No se pudo procesar el pago.' );
+        }
+    }
+}
+add_action( 'wp_ajax_tureserva_procesar_pago', 'tureserva_ajax_procesar_pago' );
+add_action( 'wp_ajax_nopriv_tureserva_procesar_pago', 'tureserva_ajax_procesar_pago' );
 
