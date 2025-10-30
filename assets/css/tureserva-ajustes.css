@@ -1,0 +1,16 @@
+#tureserva-form-ajustes {
+    background: #fff;
+    border-radius: 10px;
+    padding: 20px;
+    border: 1px solid #e3e3e3;
+}
+
+#tureserva-form-ajustes select,
+#tureserva-form-ajustes input {
+    min-width: 200px;
+}
+
+#tureserva-resultado-ajax .updated p,
+#tureserva-resultado-ajax .error p {
+    font-weight: 500;
+}

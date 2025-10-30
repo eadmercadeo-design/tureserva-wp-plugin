@@ -1,0 +1,71 @@
+/* ==============================================
+   TuReserva — Panel de Sincronización Cloud
+   Estilo tipo dashboard profesional
+   ============================================== */
+
+#tureserva-form-sync {
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    padding: 25px;
+    position: relative;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+}
+
+#tureserva-form-sync table th {
+    width: 220px;
+}
+
+#tureserva-sync-resultado {
+    margin-top: 20px;
+    display: none;
+}
+
+/* Barra de progreso */
+#tureserva-sync-progress {
+    background: #f3f3f3;
+    border-radius: 6px;
+    overflow: hidden;
+    height: 10px;
+    margin-top: 15px;
+    position: relative;
+}
+
+#tureserva-sync-progress-bar {
+    width: 0%;
+    height: 100%;
+    background: linear-gradient(90deg, #2271b1 0%, #46b450 100%);
+    transition: width 0.4s ease;
+}
+
+#tureserva-sync-progress-bar.active {
+    animation: pulse 1.2s infinite alternate;
+}
+
+@keyframes pulse {
+    from { opacity: 0.8; }
+    to { opacity: 1; }
+}
+
+/* Log de consola */
+#tureserva-sync-log {
+    background: #1e1e1e;
+    color: #ccc;
+    padding: 10px;
+    margin-top: 15px;
+    border-radius: 8px;
+    font-family: "Consolas", monospace;
+    font-size: 13px;
+    height: 180px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+}
+
+#tureserva-sync-log div {
+    padding: 2px 0;
+}
+
+/* Botones */
+#tureserva-form-sync .button {
+    margin-right: 5px;
+}

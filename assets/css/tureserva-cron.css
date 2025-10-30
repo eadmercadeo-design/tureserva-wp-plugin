@@ -1,0 +1,14 @@
+#tureserva-form-cron {
+    background: #fff;
+    border-radius: 10px;
+    padding: 20px;
+    border: 1px solid #e3e3e3;
+}
+
+#tureserva-form-cron select {
+    min-width: 200px;
+}
+
+#tureserva-cron-resultado .updated p {
+    font-weight: 500;
+}

@@ -1,0 +1,16 @@
+#tureserva-calendar .fc-daygrid-event {
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    padding: 3px 4px;
+    color: #fff;
+}
+
+#tureserva-calendar .fc-toolbar-title {
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+#tureserva-calendar .fc-daygrid-day:hover {
+    background-color: #f5f7fa;
+}
