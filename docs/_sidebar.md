@@ -1,0 +1,7 @@
+- **Guía Rápida**
+  - [Introducción](/README.md)
+  - [Guía de instalación](guia-instalacion.md)
+- **Desarrollo**
+  - [Campos de Alojamiento](campos-alojamiento.md)
+  - [Hooks y API](api-hooks.md)
+  - [Sincronización con Supabase](sincronizacion-supabase.md)

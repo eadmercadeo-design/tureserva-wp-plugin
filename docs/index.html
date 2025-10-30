@@ -3,15 +3,34 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TuReserva – Sistema de Reservas Hoteleras</title>
-  <link rel="stylesheet" href="style.css">
+  <title>TuReserva – Documentación Oficial</title>
+  <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/684/684908.png" />
+  <meta name="description" content="Documentación oficial del plugin TuReserva – Sistema de reservas hoteleras para WordPress." />
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/docsify/themes/vue.css" />
+  <style>
+    :root {
+      --theme-color: #0066cc;
+    }
+    .app-name {
+      font-weight: 600;
+      font-size: 1.3em;
+    }
+  </style>
 </head>
 <body>
-  <main>
-    <h1>TuReserva – Sistema de Reservas Hoteleras 🏨</h1>
-    <p>Plugin desarrollado por <strong>Edwin Duarte</strong>.</p>
-    <p>Administra alojamientos, reservas, tarifas y sincronización cloud.</p>
-    <p>Versión actual: <strong>0.3.2</strong></p>
-  </main>
+  <div id="app">Cargando documentación...</div>
+  <script>
+    window.$docsify = {
+      name: 'TuReserva',
+      repo: 'https://github.com/eadmercadeo-design/tureserva-wp-plugin',
+      loadSidebar: true,
+      subMaxLevel: 2,
+      search: 'auto',
+      themeColor: '#0B446B',
+      homepage: 'README.md'
+    }
+  </script>
+  <script src="//cdn.jsdelivr.net/npm/docsify/lib/docsify.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/docsify/lib/plugins/search.min.js"></script>
 </body>
 </html>
