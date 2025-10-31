@@ -4,7 +4,7 @@
  * ADMIN PAGE — Sincronización Cloud con Supabase
  * ==========================================================
  * Configura la conexión entre TuReserva y Supabase.
- * Ahora incluye soporte para barra de progreso AJAX.
+ * Incluye barra de progreso AJAX y log visual en tiempo real.
  * ==========================================================
  */
 
@@ -37,6 +37,9 @@ function tureserva_cloud_sync_page() {
         <h1><?php _e('Sincronización Cloud — TuReserva', 'tureserva'); ?></h1>
         <p><?php _e('Configura la conexión entre TuReserva y Supabase para mantener copias en la nube y análisis externos.', 'tureserva'); ?></p>
 
+        <!-- ===================================================== -->
+        <!-- 🔧 FORMULARIO PRINCIPAL DE CONFIGURACIÓN -->
+        <!-- ===================================================== -->
         <form method="post" action="<?php echo admin_url('admin-post.php'); ?>" style="max-width:700px;background:#fff;padding:25px 30px;border:1px solid #dcdcdc;border-radius:10px;box-shadow:0 1px 3px rgba(0,0,0,0.05);">
             <?php wp_nonce_field('tureserva_save_supabase_settings'); ?>
             <input type="hidden" name="action" value="tureserva_save_supabase_settings">
@@ -56,26 +59,42 @@ function tureserva_cloud_sync_page() {
                 <input type="text" value="<?php echo esc_html($last_sync); ?>" readonly style="width:100%;padding:8px 10px;border:1px solid #eee;background:#f8f8f8;border-radius:4px;color:#555;">
             </div>
 
+            <!-- ===================================================== -->
+            <!-- 🧩 BOTONES DE ACCIÓN -->
+            <!-- ===================================================== -->
             <div style="margin-top:25px;">
                 <button type="submit" class="button button-primary"><?php _e('Guardar configuración', 'tureserva'); ?></button>
                 <a href="<?php echo admin_url('admin-post.php?action=tureserva_test_supabase_connection'); ?>" class="button"><?php _e('Probar conexión', 'tureserva'); ?></a>
 
-                <!-- 🆕 CAMBIO: se reemplaza el enlace por un botón AJAX -->
+                <!-- 🆕 CAMBIO: Botón de sincronización AJAX -->
                 <button type="button" id="tureserva-sync-cloud" class="button button-secondary">
                     <?php _e('Sincronizar alojamientos', 'tureserva'); ?>
                 </button>
             </div>
 
+            <!-- ===================================================== -->
             <!-- 🧩 NUEVO BLOQUE: barra de progreso y estado dinámico -->
+            <!-- ===================================================== -->
             <div style="margin-top:25px;width:100%;max-width:400px;background:#eee;border-radius:6px;height:10px;overflow:hidden;">
                 <div id="tureserva-sync-progress" style="width:0%;height:10px;background:#2271b1;transition:width .3s;"></div>
             </div>
             <p id="tureserva-sync-status" style="margin-top:10px;font-weight:500;color:#444;"></p>
-        </form>
-    </div>
+
+            <!-- ===================================================== -->
+            <!-- 🧩 NUEVO BLOQUE: Log visual en tiempo real -->
+            <!-- ===================================================== -->
+            <div id="tureserva-sync-log" style="margin-top:25px;padding:15px 20px;background:#f9f9f9;border:1px solid #ddd;border-radius:6px;max-height:250px;overflow-y:auto;font-size:13px;">
+                <p style="margin:0;font-weight:600;">Registros de sincronización:</p>
+                <ul id="tureserva-log-list" style="margin-top:10px;list-style:none;padding:0;"></ul>
+            </div>
+
+        </form> <!-- ✅ cierre correcto del formulario dentro del .wrap -->
+    </div> <!-- ✅ cierre correcto del contenedor principal -->
 
     <?php
-    // 🧩 NUEVO BLOQUE: Encolar script para AJAX + pasar variables al JS
+    // =======================================================
+    // 🧩 Encolar script JS para AJAX + pasar variables al JS
+    // =======================================================
     wp_enqueue_script('tureserva-cloud-sync', TURESERVA_URL . 'assets/js/cloud-sync.js', ['jquery'], TURESERVA_VERSION, true);
 
     wp_localize_script('tureserva-cloud-sync', 'tureserva_ajax', [
@@ -118,7 +137,4 @@ add_action('admin_post_tureserva_test_supabase_connection', function () {
     }
 
     echo '<div class="wrap"><h1>✅ Conexión exitosa con Supabase</h1>';
-    echo '<p>La API respondió correctamente.</p>';
-    echo '<a href="' . admin_url('edit.php?post_type=reserva&page=tureserva-cloud-sync') . '" class="button">Volver</a></div>';
-    exit;
-});
+    echo

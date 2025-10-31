@@ -5,6 +5,7 @@
  * ==========================================================
  * Envía todos los alojamientos y reservas a Supabase cuando
  * el usuario pulsa el botón "Sincronizar alojamientos".
+ * Ahora incluye registro de logs de sincronización (Fase 9).
  * ==========================================================
  */
 
@@ -28,6 +29,8 @@ function tureserva_cloud_sync_all() {
         'apikey' => $key,
         'Content-Type' => 'application/json'
     ];
+
+    $inicio = microtime(true); // 🧩 NUEVO: registrar inicio para calcular duración
 
     // ===================================================
     // 🔹 Sincronizar ALOJAMIENTOS
@@ -99,11 +102,128 @@ function tureserva_cloud_sync_all() {
     // ===================================================
     update_option('tureserva_cloud_last_sync', current_time('mysql'));
 
+    // 🧩 NUEVO BLOQUE — Guardar log local de sincronización
+    global $wpdb;
+    $table = $wpdb->prefix . 'tureserva_sync_log';
+    $fin = microtime(true);
+    $duracion = round($fin - $inicio);
+
+    $total_aloj = count($data_alojamientos);
+    $total_resv = count($data_reservas);
+    $total = $total_aloj + $total_resv;
+
+    $data = [
+        'tipo'         => 'cloud',
+        'usuario'      => wp_get_current_user()->user_login,
+        'total'        => $total,
+        'exitoso'      => $total, // asumimos éxito total (en AJAX se mide por respuesta)
+        'fallido'      => 0,
+        'duracion'     => $duracion,
+        'fecha_inicio' => current_time('mysql', true),
+        'fecha_fin'    => current_time('mysql', true),
+        'resumen'      => sprintf('Sincronización manual completada. %d alojamientos y %d reservas enviadas.', $total_aloj, $total_resv),
+    ];
+
+    $wpdb->insert($table, $data);
+
+    // 🧩 NUEVO BLOQUE — Enviar log también a Supabase
+    $supabase_log = [
+        [
+            'tipo'         => 'cloud',
+            'usuario'      => $data['usuario'],
+            'total'        => $data['total'],
+            'exitoso'      => $data['exitoso'],
+            'fallido'      => $data['fallido'],
+            'duracion'     => $data['duracion'],
+            'fecha_inicio' => $data['fecha_inicio'],
+            'fecha_fin'    => $data['fecha_fin'],
+            'resumen'      => $data['resumen'],
+        ]
+    ];
+
+    wp_remote_post("$url/tureserva_sync_log", [
+        'headers' => [
+            'apikey'        => $key,
+            'Authorization' => 'Bearer ' . $key,
+            'Content-Type'  => 'application/json',
+        ],
+        'body'    => wp_json_encode($supabase_log),
+        'method'  => 'POST',
+        'timeout' => 25,
+    ]);
+
+    // ===================================================
+    // 🧩 Página de confirmación
+    // ===================================================
     echo '<div class="wrap">';
     echo '<h1>✅ Sincronización completada con éxito</h1>';
     echo '<p>Los alojamientos y reservas se enviaron correctamente a Supabase.</p>';
+    echo '<p><strong>Duración:</strong> ' . esc_html($duracion) . ' segundos</p>';
     echo '<a href="' . admin_url('edit.php?post_type=reserva&page=tureserva-cloud-sync') . '" class="button button-primary">Volver</a>';
     echo '</div>';
 
     exit;
 }
+
+// =======================================================
+// 🧩 AJAX — Registrar log de sincronización Cloud
+// =======================================================
+add_action('wp_ajax_tureserva_cloud_save_log', function () {
+    check_ajax_referer('tureserva_cloud_sync_nonce', 'security');
+
+    global $wpdb;
+    $table = $wpdb->prefix . 'tureserva_sync_log';
+
+    $data = [
+        'tipo'         => 'cloud',
+        'usuario'      => wp_get_current_user()->user_login,
+        'total'        => intval($_POST['total']),
+        'exitoso'      => intval($_POST['ok']),
+        'fallido'      => intval($_POST['fail']),
+        'duracion'     => intval($_POST['duracion']),
+        'fecha_inicio' => sanitize_text_field($_POST['inicio']),
+        'fecha_fin'    => current_time('mysql'),
+        'resumen'      => sanitize_textarea_field($_POST['resumen']),
+    ];
+
+    $wpdb->insert($table, $data);
+
+    // 🧩 NUEVO BLOQUE — También enviar el log a Supabase
+    $url = get_option('tureserva_supabase_url');
+    $key = get_option('tureserva_supabase_api_key');
+
+    if ($url && $key) {
+        $headers = [
+            'apikey'        => $key,
+            'Authorization' => 'Bearer ' . $key,
+            'Content-Type'  => 'application/json',
+        ];
+
+        $supabase_data = [
+            [
+                'tipo'         => 'cloud',
+                'usuario'      => $data['usuario'],
+                'total'        => $data['total'],
+                'exitoso'      => $data['exitoso'],
+                'fallido'      => $data['fallido'],
+                'duracion'     => $data['duracion'],
+                'fecha_inicio' => $data['fecha_inicio'],
+                'fecha_fin'    => $data['fecha_fin'],
+                'resumen'      => $data['resumen'],
+            ]
+        ];
+
+        wp_remote_post("$url/tureserva_sync_log", [
+            'headers' => $headers,
+            'body'    => wp_json_encode($supabase_data),
+            'method'  => 'POST',
+            'timeout' => 25,
+        ]);
+    }
+
+    if ($wpdb->insert_id) {
+        wp_send_json_success(['message' => 'Log guardado correctamente.']);
+    } else {
+        wp_send_json_error(['message' => 'No se pudo guardar el log.']);
+    }
+});
