@@ -83,6 +83,25 @@ function tureserva_init() {
     // ===============================
     require_once TURESERVA_PATH . 'shortcodes/shortcode-buscador.php';
     require_once TURESERVA_PATH . 'shortcodes/shortcode-pago.php';
+// =======================================================
+// 🗓️ Sincronización de calendarios (Fase 1)
+// =======================================================
+require_once TURESERVA_PATH . 'includes/sync/calendar-logger.php';
+require_once TURESERVA_PATH . 'includes/sync/calendar-sync.php';
+
+// =======================================================
+// 🗓️ Sincronización de calendarios (Fase 2)
+// =======================================================
+require_once TURESERVA_PATH . 'includes/sync/calendar-handler.php';
+
+// =======================================================
+// 🗓️ Sincronización de calendarios (Fase 3 – Exportación iCal)
+// =======================================================
+require_once TURESERVA_PATH . 'includes/sync/ical-export.php';
+require_once TURESERVA_PATH . 'includes/sync/calendar-cron.php';
+require_once TURESERVA_PATH . 'includes/sync/cloud-handler.php';
+require_once TURESERVA_PATH . 'includes/sync/cloud-handler.php';
+
 
     // ===============================
     // 🌍 Traducciones
