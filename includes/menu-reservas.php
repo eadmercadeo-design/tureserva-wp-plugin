@@ -1,49 +1,150 @@
 <?php
 /**
  * ==========================================================
- * ADMIN MENU: Reservas — TuReserva
+ * MENÚ ADMINISTRATIVO: Reservas
  * ==========================================================
- * Menú principal del sistema de reservas.
- * Incluye accesos a pagos, reportes, calendario y más.
+ * Unifica todos los submenús bajo un solo menú principal,
+ * incluyendo los accesos a las pantallas nativas del CPT.
  * ==========================================================
  */
 
-if ( ! defined( 'ABSPATH' ) ) exit;
+if (!defined('ABSPATH')) exit;
 
-// =======================================================
-// 📋 MENÚ PRINCIPAL "RESERVAS"
-// =======================================================
 function tureserva_admin_menu_reservas() {
 
-    // Menú principal
+    // -------------------------------
+    // 📅 Menú principal "Reservas"
+    // -------------------------------
     add_menu_page(
-        __( 'Reservas', 'tureserva' ),
-        __( 'Reservas', 'tureserva' ),
+        __('Reservas', 'tureserva'),
+        __('Reservas', 'tureserva'),
         'manage_options',
-        'tureserva_menu_reservas',
-        'tureserva_reservas_dashboard',
+        'edit.php?post_type=reserva', // usa la pantalla del CPT
+        '',
         'dashicons-calendar-alt',
-        6 // posición para que aparezca junto a "Alojamiento"
+        6
     );
 
-    // Submenús
-    add_submenu_page( 'tureserva_menu_reservas', 'Todas las reservas', 'Todas las reservas', 'manage_options', 'edit.php?post_type=tureserva_reservas' );
-    add_submenu_page( 'tureserva_menu_reservas', 'Añadir nueva reserva', 'Añadir nueva reserva', 'manage_options', 'post-new.php?post_type=tureserva_reservas' );
-    add_submenu_page( 'tureserva_menu_reservas', 'Todos los pagos', 'Todos los pagos', 'manage_options', 'edit.php?post_type=tureserva_pagos' );
-    add_submenu_page( 'tureserva_menu_reservas', 'Notificaciones', 'Notificaciones', 'manage_options', 'tureserva_notificaciones', 'tureserva_notificaciones_page' );
-    add_submenu_page( 'tureserva_menu_reservas', 'Calendario', 'Calendario', 'manage_options', 'tureserva_calendario', 'tureserva_calendario_page' );
-    add_submenu_page( 'tureserva_menu_reservas', 'Reportes', 'Reportes', 'manage_options', 'tureserva_reportes', 'tureserva_reportes_page' );
-    add_submenu_page( 'tureserva_menu_reservas', 'Ajustes', 'Ajustes', 'manage_options', 'tureserva_ajustes', 'tureserva_ajustes_page' );
-    add_submenu_page( 'tureserva_menu_reservas', 'API Tokens', 'API Tokens', 'manage_options', 'tureserva_tokens', 'tureserva_tokens_page' );
-    add_submenu_page( 'tureserva_menu_reservas', 'Sincronización Cloud', 'Sincronización Cloud', 'manage_options', 'tureserva_sync', 'tureserva_sync_page' );
-    add_submenu_page( 'tureserva_menu_reservas', 'Frecuencia de Sincronización', 'Frecuencia de Sincronización', 'manage_options', 'tureserva_cron', 'tureserva_cron_page' );
-    add_submenu_page( 'tureserva_menu_reservas', 'Configuración de Pagos', 'Configuración de Pagos', 'manage_options', 'tureserva_payments', 'tureserva_payments_page' );
-}
-add_action( 'admin_menu', 'tureserva_admin_menu_reservas' );
+    // -------------------------------
+    // 📋 Submenús del CPT
+    // -------------------------------
 
-// =======================================================
-// 📊 PANTALLA PRINCIPAL DE RESERVAS
-// =======================================================
-function tureserva_reservas_dashboard() {
-    echo '<div class="wrap"><h1>📅 Panel de Reservas</h1><p>Desde aquí puedes acceder a todas las funciones del sistema de reservas: crear nuevas reservas, gestionar pagos, ver reportes y sincronización.</p></div>';
+    // Todas las reservas
+    add_submenu_page(
+        'edit.php?post_type=reserva',
+        __('Todas las reservas', 'tureserva'),
+        __('Todas las reservas', 'tureserva'),
+        'manage_options',
+        'edit.php?post_type=reserva'
+    );
+
+    // Añadir nueva
+    add_submenu_page(
+        'edit.php?post_type=reserva',
+        __('Añadir nueva reserva', 'tureserva'),
+        __('Añadir nueva reserva', 'tureserva'),
+        'manage_options',
+        'post-new.php?post_type=reserva'
+    );
+
+    // Historial de pagos
+    add_submenu_page(
+        'edit.php?post_type=reserva',
+        __('Historial de pagos', 'tureserva'),
+        __('Historial de pagos', 'tureserva'),
+        'manage_options',
+        'tureserva-historial-pagos',
+        'tureserva_historial_pagos_page'
+    );
+
+    // Calendario
+    add_submenu_page(
+        'edit.php?post_type=reserva',
+        __('Calendario de reservas', 'tureserva'),
+        __('Calendario', 'tureserva'),
+        'manage_options',
+        'tureserva-calendario',
+        'tureserva_calendario_page'
+    );
+
+    // Clientes
+    add_submenu_page(
+        'edit.php?post_type=reserva',
+        __('Clientes', 'tureserva'),
+        __('Clientes', 'tureserva'),
+        'manage_options',
+        'tureserva-clientes',
+        'tureserva_clientes_page'
+    );
+
+    // Cupones
+    add_submenu_page(
+        'edit.php?post_type=reserva',
+        __('Cupones de descuento', 'tureserva'),
+        __('Cupones', 'tureserva'),
+        'manage_options',
+        'tureserva-cupones',
+        'tureserva_cupones_page'
+    );
+
+    // Reglas de reserva
+    add_submenu_page(
+        'edit.php?post_type=reserva',
+        __('Reglas de reserva', 'tureserva'),
+        __('Reglas de reserva', 'tureserva'),
+        'manage_options',
+        'tureserva-reglas',
+        'tureserva_reglas_page'
+    );
+
+    // Impuestos y cargos
+    add_submenu_page(
+        'edit.php?post_type=reserva',
+        __('Impuestos y cargos', 'tureserva'),
+        __('Impuestos y cargos', 'tureserva'),
+        'manage_options',
+        'tureserva-impuestos',
+        'tureserva_impuestos_page'
+    );
+
+    // Sincronizar calendarios
+    add_submenu_page(
+        'edit.php?post_type=reserva',
+        __('Sincronización de Calendarios', 'tureserva'),
+        __('Sincronizar calendarios', 'tureserva'),
+        'manage_options',
+        'tureserva-calendar-sync',
+        'tureserva_calendar_sync_page'
+    );
+
+    // Cloud Sync (Supabase)
+    add_submenu_page(
+        'edit.php?post_type=reserva',
+        __('Cloud Sync (Supabase)', 'tureserva'),
+        __('Cloud Sync (Supabase)', 'tureserva'),
+        'manage_options',
+        'tureserva-cloud-sync',
+        'tureserva_cloud_sync_page'
+    );
+
+    // Informes
+    add_submenu_page(
+        'edit.php?post_type=reserva',
+        __('Informes y estadísticas', 'tureserva'),
+        __('Informes', 'tureserva'),
+        'manage_options',
+        'tureserva-informes',
+        'tureserva_informes_page'
+    );
+
+    // Extensiones
+    add_submenu_page(
+        'edit.php?post_type=reserva',
+        __('Extensiones del sistema', 'tureserva'),
+        __('Extensiones', 'tureserva'),
+        'manage_options',
+        'tureserva-extensiones',
+        'tureserva_extensiones_page'
+    );
 }
+add_action('admin_menu', 'tureserva_admin_menu_reservas', 9);

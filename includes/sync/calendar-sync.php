@@ -1,68 +1,74 @@
 <?php
 /**
  * ==========================================================
- * ADMIN PAGE — Sincronización de Calendarios (iCal)
+ * ADMIN PAGE — Sincronización de Calendarios
  * ==========================================================
- * Permite importar y exportar calendarios desde plataformas
- * como Airbnb, Booking.com y Google Calendar.
+ * Permite importar y exportar calendarios iCal (Airbnb, Booking, Google, etc.)
+ * y mostrar un resumen visual de la última sincronización.
  * ==========================================================
  */
 
 if (!defined('ABSPATH')) exit;
 
 // =======================================================
-// 🖥️ PÁGINA PRINCIPAL DE SINCRONIZACIÓN DE CALENDARIOS
+// 🖥️ Render de la página principal
 // =======================================================
 function tureserva_calendar_sync_page() {
-    global $wpdb;
-
-    $table = $wpdb->prefix . 'tureserva_sync_log';
-    $registros = $wpdb->get_results("SELECT * FROM $table ORDER BY fecha DESC LIMIT 50");
     ?>
     <div class="wrap">
-        <h1><?php _e('Sincronización de Calendarios (iCal)', 'tureserva'); ?></h1>
-        <p><?php _e('Administre la conexión con calendarios externos como Airbnb, Booking.com o Google Calendar. Puede ejecutar sincronizaciones manuales o revisar el historial de ejecución.', 'tureserva'); ?></p>
+        <h1><span style="color:#2271b1;">📅</span> <?php _e('Sincronización de Calendarios', 'tureserva'); ?></h1>
+        <p><?php _e('Administra la sincronización de calendarios con plataformas externas como Airbnb, Booking o Google Calendar.', 'tureserva'); ?></p>
 
-        <div style="margin-bottom:20px;">
-            <form method="post" action="<?php echo admin_url('admin-post.php'); ?>">
-                <input type="hidden" name="action" value="tureserva_sync_all_calendars">
-                <button type="submit" class="button button-primary">
-                    <?php _e('🔄 Sincronizar todos los calendarios externos', 'tureserva'); ?>
-                </button>
-            </form>
-            <a href="<?php echo admin_url('admin-post.php?action=tureserva_clear_sync_logs'); ?>" class="button button-secondary" style="margin-top:5px;">
-                <?php _e('🗑️ Limpiar registros', 'tureserva'); ?>
-            </a>
+        <!-- ===================================================== -->
+        <!-- 🧩 SECCIÓN: Sincronización manual -->
+        <!-- ===================================================== -->
+        <div style="margin-top:30px;background:#fff;padding:25px 30px;border:1px solid #dcdcdc;border-radius:10px;max-width:900px;box-shadow:0 1px 3px rgba(0,0,0,0.05);">
+            <h2 style="margin-top:0;">🕓 <?php _e('Sincronización manual', 'tureserva'); ?></h2>
+            <p><?php _e('Haz clic para actualizar manualmente los calendarios de todos los alojamientos conectados.', 'tureserva'); ?></p>
+
+            <button id="tureserva-sync-calendar" class="button button-primary" style="margin-top:10px;">
+                🔄 <?php _e('Sincronizar ahora', 'tureserva'); ?>
+            </button>
+
+            <div id="tureserva-calendar-progress" style="margin-top:20px;width:100%;max-width:400px;background:#eee;border-radius:6px;height:10px;overflow:hidden;">
+                <div style="width:0%;height:10px;background:#2271b1;transition:width .3s;" id="tureserva-calendar-progress-bar"></div>
+            </div>
+            <p id="tureserva-calendar-status" style="margin-top:10px;font-weight:500;color:#444;"></p>
         </div>
 
-        <table class="widefat fixed striped">
-            <thead>
-                <tr>
-                    <th><?php _e('Alojamiento', 'tureserva'); ?></th>
-                    <th><?php _e('Estado', 'tureserva'); ?></th>
-                    <th><?php _e('Total', 'tureserva'); ?></th>
-                    <th><?php _e('Exitoso', 'tureserva'); ?></th>
-                    <th><?php _e('Erróneo', 'tureserva'); ?></th>
-                    <th><?php _e('Fecha', 'tureserva'); ?></th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php if (!empty($registros)) : ?>
-                    <?php foreach ($registros as $r) : ?>
-                        <tr>
-                            <td><?php echo esc_html($r->alojamiento); ?></td>
-                            <td><?php echo esc_html($r->estado); ?></td>
-                            <td><?php echo intval($r->total); ?></td>
-                            <td><?php echo intval($r->exitoso); ?></td>
-                            <td><?php echo intval($r->erroneo); ?></td>
-                            <td><?php echo esc_html($r->fecha); ?></td>
-                        </tr>
-                    <?php endforeach; ?>
-                <?php else : ?>
-                    <tr><td colspan="6"><?php _e('No se han encontrado registros de sincronización.', 'tureserva'); ?></td></tr>
-                <?php endif; ?>
-            </tbody>
-        </table>
+        <!-- ===================================================== -->
+        <!-- 🧩 SECCIÓN: Últimas sincronizaciones -->
+        <!-- ===================================================== -->
+        <div style="margin-top:40px;background:#fff;padding:25px 30px;border:1px solid #dcdcdc;border-radius:10px;max-width:900px;box-shadow:0 1px 3px rgba(0,0,0,0.05);">
+            <h2 style="margin-top:0;">📊 <?php _e('Historial de sincronización', 'tureserva'); ?></h2>
+            <p><?php _e('Revisa las últimas sincronizaciones registradas para cada alojamiento.', 'tureserva'); ?></p>
+
+            <table class="widefat fixed striped" style="margin-top:20px;">
+                <thead>
+                    <tr>
+                        <th><?php _e('Alojamiento', 'tureserva'); ?></th>
+                        <th><?php _e('Fecha', 'tureserva'); ?></th>
+                        <th><?php _e('Fuente', 'tureserva'); ?></th>
+                        <th><?php _e('Estado', 'tureserva'); ?></th>
+                    </tr>
+                </thead>
+                <tbody id="tureserva-calendar-log">
+                    <tr>
+                        <td colspan="4" style="text-align:center;color:#777;">
+                            <?php _e('No hay registros disponibles aún.', 'tureserva'); ?>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
     </div>
+
     <?php
+    // Encolar script JS (simulación visual)
+    wp_enqueue_script('tureserva-calendar-sync', TURESERVA_URL . 'assets/js/calendar-sync.js', ['jquery'], TURESERVA_VERSION, true);
+
+    wp_localize_script('tureserva-calendar-sync', 'tureserva_calendar_ajax', [
+        'ajax_url' => admin_url('admin-ajax.php'),
+        'nonce'    => wp_create_nonce('tureserva_calendar_sync_nonce'),
+    ]);
 }
