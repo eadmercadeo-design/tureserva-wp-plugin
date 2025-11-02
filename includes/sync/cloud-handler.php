@@ -164,6 +164,23 @@ function tureserva_cloud_sync_all() {
 
     exit;
 }
+// =======================================================
+// 📊 AJAX — Obtener registros de sincronización (para dashboard)
+// =======================================================
+add_action('wp_ajax_tureserva_get_sync_logs', function () {
+    check_ajax_referer('tureserva_cloud_sync_nonce', 'security');
+    global $wpdb;
+
+    $table = $wpdb->prefix . 'tureserva_sync_log';
+    $logs = $wpdb->get_results("SELECT * FROM $table ORDER BY fecha_fin DESC LIMIT 20");
+
+    if (!empty($logs)) {
+        wp_send_json_success($logs);
+    } else {
+        wp_send_json_error(['message' => 'No se encontraron registros.']);
+    }
+});
+
 
 // =======================================================
 // 🧩 AJAX — Registrar log de sincronización Cloud
