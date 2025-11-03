@@ -11,17 +11,17 @@
  * ==========================================================
  */
 
-if ( ! defined( 'ABSPATH' ) ) exit;
+if (!defined('ABSPATH')) exit;
 
 // =======================================================
 // 🧭 REGISTRO DEL SUBMENÚ "Calendario"
 // =======================================================
-add_action( 'admin_menu', 'tureserva_menu_calendario' );
+add_action('admin_menu', 'tureserva_menu_calendario');
 function tureserva_menu_calendario() {
     add_submenu_page(
         'edit.php?post_type=tureserva_reservas',
-        'Calendario de Reservas',
-        'Calendario',
+        __('Calendario de Reservas', 'tureserva'),
+        __('Calendario', 'tureserva'),
         'manage_options',
         'tureserva_calendario',
         'tureserva_vista_calendario'
@@ -31,46 +31,62 @@ function tureserva_menu_calendario() {
 // =======================================================
 // 📦 CARGAR SCRIPTS Y ESTILOS SOLO EN ESTE PANEL
 // =======================================================
-add_action( 'admin_enqueue_scripts', 'tureserva_calendario_assets' );
-function tureserva_calendario_assets( $hook ) {
-    if ( strpos( $hook, 'tureserva_calendario' ) === false ) return;
+add_action('admin_enqueue_scripts', 'tureserva_calendario_assets');
+function tureserva_calendario_assets($hook) {
+    // Solo en la página del calendario
+    if (strpos($hook, 'tureserva_calendario') === false) return;
 
-    // FullCalendar desde CDN (versión ligera)
-    wp_enqueue_style( 'fullcalendar-css', 'https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css', array(), '6.1.8' );
-    wp_enqueue_script( 'fullcalendar-js', 'https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js', array(), '6.1.8', true );
+    // 🎨 FullCalendar desde CDN
+    wp_enqueue_style('fullcalendar-css', 'https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css', [], '6.1.8');
+    wp_enqueue_script('fullcalendar-js', 'https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js', ['jquery'], '6.1.8', true);
 
-    // JS personalizado del plugin
-    wp_enqueue_script( 'tureserva-calendar-js', TURESERVA_URL . 'assets/js/tureserva-calendar.js', array( 'jquery', 'fullcalendar-js' ), TURESERVA_VERSION, true );
+    // 💬 Tooltips (Tippy.js)
+    wp_enqueue_script('tippy-core', 'https://unpkg.com/@popperjs/core@2', [], null, true);
+    wp_enqueue_script('tippy-js', 'https://unpkg.com/tippy.js@6', ['tippy-core'], null, true);
 
-    // Datos para AJAX
-    wp_localize_script( 'tureserva-calendar-js', 'tureservaCalendar', array(
-        'ajax_url' => admin_url( 'admin-ajax.php' ),
-        'nonce'    => wp_create_nonce( 'tureserva_calendar_nonce' ),
-        'year'     => date( 'Y' ),
-    ) );
+    // 📜 JS personalizado del plugin
+    wp_enqueue_script(
+        'tureserva-calendar-js',
+        TURESERVA_URL . 'assets/js/tureserva-calendar.js',
+        ['jquery', 'fullcalendar-js', 'tippy-js'],
+        TURESERVA_VERSION,
+        true
+    );
 
-    // CSS propio
-    wp_enqueue_style( 'tureserva-calendar-css', TURESERVA_URL . 'assets/css/tureserva-calendar.css', array(), TURESERVA_VERSION );
+    // 🔒 Variables para AJAX
+    wp_localize_script('tureserva-calendar-js', 'tureservaCalendar', [
+        'ajax_url' => admin_url('admin-ajax.php'),
+        'nonce'    => wp_create_nonce('tureserva_calendar_nonce'),
+        'year'     => date('Y'),
+    ]);
+
+    // 🎨 CSS propio
+    wp_enqueue_style(
+        'tureserva-calendar-css',
+        TURESERVA_URL . 'assets/css/tureserva-calendar.css',
+        [],
+        TURESERVA_VERSION
+    );
 }
 
 // =======================================================
 // 🗓️ INTERFAZ DEL PANEL DE CALENDARIO
 // =======================================================
 function tureserva_vista_calendario() {
-    if ( ! current_user_can( 'manage_options' ) ) return;
+    if (!current_user_can('manage_options')) return;
 
-    // Filtros de búsqueda
-    $alojamientos = get_posts( array(
-        'post_type' => 'tureserva_alojamiento',
+    // 🔍 Cargar alojamientos para filtro
+    $alojamientos = get_posts([
+        'post_type'      => 'tureserva_alojamiento',
         'posts_per_page' => -1,
-        'post_status' => 'publish',
-    ) );
-
+        'post_status'    => 'publish',
+    ]);
     ?>
     <div class="wrap">
-        <h1>📅 Calendario de Reservas — TuReserva</h1>
-        <p>Consulta las reservas y bloqueos activos. Los colores indican el estado:</p>
-        <ul>
+        <h1>📅 <?php _e('Calendario de Reservas — TuReserva', 'tureserva'); ?></h1>
+        <p><?php _e('Consulta las reservas y bloqueos activos. Los colores indican el estado:', 'tureserva'); ?></p>
+
+        <ul style="display:flex;gap:10px;flex-wrap:wrap;">
             <li><span style="background:#2ecc71;padding:3px 10px;color:#fff;border-radius:3px;">Confirmada</span></li>
             <li><span style="background:#f1c40f;padding:3px 10px;color:#000;border-radius:3px;">Pendiente</span></li>
             <li><span style="background:#e74c3c;padding:3px 10px;color:#fff;border-radius:3px;">Cancelada</span></li>
@@ -79,29 +95,30 @@ function tureserva_vista_calendario() {
 
         <form id="tureserva-calendario-filtros" method="GET" style="margin-top:20px;">
             <input type="hidden" name="page" value="tureserva_calendario">
-            <label><strong>Año:</strong></label>
-            <input type="number" name="year" id="tureserva_year" value="<?php echo esc_attr( date( 'Y' ) ); ?>" min="2020" max="2050" style="width:80px;margin-right:10px;">
 
-            <label><strong>Alojamiento:</strong></label>
+            <label><strong><?php _e('Año:', 'tureserva'); ?></strong></label>
+            <input type="number" name="year" id="tureserva_year" value="<?php echo esc_attr(date('Y')); ?>" min="2020" max="2050" style="width:80px;margin-right:10px;">
+
+            <label><strong><?php _e('Alojamiento:', 'tureserva'); ?></strong></label>
             <select name="alojamiento" id="tureserva_alojamiento" style="min-width:200px;margin-right:10px;">
-                <option value="0">Todos</option>
-                <?php foreach ( $alojamientos as $aloj ) : ?>
-                    <option value="<?php echo esc_attr( $aloj->ID ); ?>"><?php echo esc_html( $aloj->post_title ); ?></option>
+                <option value="0"><?php _e('Todos', 'tureserva'); ?></option>
+                <?php foreach ($alojamientos as $aloj) : ?>
+                    <option value="<?php echo esc_attr($aloj->ID); ?>"><?php echo esc_html($aloj->post_title); ?></option>
                 <?php endforeach; ?>
             </select>
 
-            <label><strong>Estado:</strong></label>
+            <label><strong><?php _e('Estado:', 'tureserva'); ?></strong></label>
             <select name="estado" id="tureserva_estado" style="min-width:160px;margin-right:10px;">
-                <option value="">Todos</option>
-                <option value="confirmada">Confirmada</option>
-                <option value="pendiente">Pendiente</option>
-                <option value="cancelada">Cancelada</option>
+                <option value=""><?php _e('Todos', 'tureserva'); ?></option>
+                <option value="confirmada"><?php _e('Confirmada', 'tureserva'); ?></option>
+                <option value="pendiente"><?php _e('Pendiente', 'tureserva'); ?></option>
+                <option value="cancelada"><?php _e('Cancelada', 'tureserva'); ?></option>
             </select>
 
-            <button type="button" id="tureserva-filtrar" class="button button-primary">🔍 Filtrar</button>
+            <button type="button" id="tureserva-filtrar" class="button button-primary">🔍 <?php _e('Filtrar', 'tureserva'); ?></button>
         </form>
 
-        <div id="tureserva-calendar" style="margin-top:30px;"></div>
+        <div id="tureserva-calendar" style="margin-top:30px;min-height:650px;background:#fff;border:1px solid #ccd0d4;border-radius:6px;padding:15px;"></div>
     </div>
     <?php
 }
