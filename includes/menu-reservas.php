@@ -148,3 +148,50 @@ function tureserva_admin_menu_reservas() {
     );
 }
 add_action('admin_menu', 'tureserva_admin_menu_reservas', 9);
+// =======================================================
+// 📅 Página de Calendario — Callback con FullCalendar
+// =======================================================
+function tureserva_calendario_page() {
+    ?>
+    <div class="wrap">
+        <h1><?php _e('Calendario de Reservas', 'tureserva'); ?></h1>
+        <p><?php _e('Visualiza las reservas existentes en formato calendario.', 'tureserva'); ?></p>
+
+        <div id="tureserva-calendar" style="margin-top:30px;"></div>
+
+        <!-- FullCalendar CDN -->
+        <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/main.min.css" rel="stylesheet">
+        <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/main.min.js"></script>
+
+        <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const calendarEl = document.getElementById('tureserva-calendar');
+
+            const calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                locale: 'es',
+                height: 'auto',
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth,timeGridWeek,timeGridDay'
+                },
+                events: [
+                    {
+                        title: 'Reserva #001',
+                        start: '2025-11-04',
+                        end: '2025-11-06'
+                    },
+                    {
+                        title: 'Reserva #002',
+                        start: '2025-11-10'
+                    }
+                ]
+            });
+
+            calendar.render();
+        });
+        </script>
+    </div>
+    <?php
+}

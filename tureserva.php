@@ -117,6 +117,13 @@ function tureserva_init() {
     // 🌍 TRADUCCIONES
     // -------------------------------------------------------
     load_plugin_textdomain( 'tureserva', false, dirname( plugin_basename( __FILE__ ) ) . '/languages' );
+// =======================================================
+// 📊 Dashboard personalizado — TuReserva
+// =======================================================
+if (is_admin()) {
+    require_once TURESERVA_PATH . 'admin/dashboard/tureserva-dashboard.php';
+}
+
 }
 add_action( 'plugins_loaded', 'tureserva_init' );
 
@@ -155,6 +162,8 @@ function tureserva_on_deactivate() {
     flush_rewrite_rules();
     do_action( 'tureserva_deactivated' );
 }
+
+
 register_deactivation_hook( __FILE__, 'tureserva_on_deactivate' );
 
 
