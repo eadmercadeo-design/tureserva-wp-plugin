@@ -48,8 +48,6 @@ function tureserva_init() {
     require_once TURESERVA_PATH . 'includes/menu-alojamiento.php';
     require_once TURESERVA_PATH . 'includes/menu-reservas.php';     // ✅ Menú unificado de Reservas
     require_once TURESERVA_PATH . 'includes/menu-sync.php';         // ✅ Submenús de sincronización
-
-    
     require_once TURESERVA_PATH . 'includes/menu-comodidades.php';
     require_once TURESERVA_PATH . 'includes/meta-boxes-alojamiento.php';
     require_once TURESERVA_PATH . 'includes/menu-notificaciones.php';
@@ -62,6 +60,16 @@ function tureserva_init() {
     require_once TURESERVA_PATH . 'includes/setup-pages.php';
 
     // =======================================================
+    // ⚙️ PÁGINAS ADMINISTRATIVAS ESPECÍFICAS
+    // =======================================================
+    if (is_admin()) {
+        require_once TURESERVA_PATH . 'admin/pages/generar-alojamientos.php';
+        require_once TURESERVA_PATH . 'admin/pages/ajustes-alojamiento.php';
+        require_once TURESERVA_PATH . 'admin/pages/ajustes-generales.php';
+ // 🏠 Página: Generar alojamientos
+    }
+
+    // =======================================================
     // 💡 Núcleo lógico (Core)
     // =======================================================
     require_once TURESERVA_PATH . 'core/core-helpers.php';
@@ -70,6 +78,7 @@ function tureserva_init() {
     require_once TURESERVA_PATH . 'core/core-availability.php';
     require_once TURESERVA_PATH . 'core/core-bookings.php';
     require_once TURESERVA_PATH . 'core/core-notifications.php';
+    require_once TURESERVA_PATH . 'core/core-email-cron.php';
     require_once TURESERVA_PATH . 'core/core-calendar.php';
     require_once TURESERVA_PATH . 'core/core-reports.php';
     require_once TURESERVA_PATH . 'core/core-api.php';
@@ -111,20 +120,14 @@ add_action('plugins_loaded', 'tureserva_init');
 // 🗓️ ACTIVACIÓN DEL PLUGIN
 // =======================================================
 function tureserva_on_activate() {
-
-    // Crear categorías base de alojamiento
     if (function_exists('tureserva_insert_default_categorias')) {
         tureserva_insert_default_categorias();
     }
 
-    // Registrar CPTs y taxonomías antes del flush
     tureserva_init();
     flush_rewrite_rules();
-
-    // Acción personalizada para otras extensiones
     do_action('tureserva_activated');
 
-    // ⚙️ Configuración inicial de notificaciones
     update_option('tureserva_admin_email', 'reservas@tuhotel.com');
     update_option('tureserva_from_name', 'TuReserva Hotel');
     update_option('tureserva_from_email', 'no-reply@tuhotel.com');
