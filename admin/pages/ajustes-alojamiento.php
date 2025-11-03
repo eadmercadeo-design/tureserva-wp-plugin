@@ -3,277 +3,146 @@
  * ==========================================================
  * ADMIN PAGE: Ajustes de Alojamiento — TuReserva
  * ==========================================================
- * Configuración global con pestañas internas:
+ * Pestañas internas:
  * - General
- * - Emails (Administrador)
- * - Emails (Cliente)
- * - Pagos
- * - Sincronización
+ * - Emails del admin
+ * - Emails del cliente
+ * - Ajustes de email (plantillas globales)
+ * - Pasarelas de pago
+ * - Extensiones
  * - Avanzado
+ * - Licencia
  * ==========================================================
  */
 
-if (!defined('ABSPATH')) exit;
+if ( ! defined( 'ABSPATH' ) ) exit;
 
 // =======================================================
-// 🧭 Registrar submenú bajo "Alojamiento"
+// 💾 GUARDAR OPCIONES
 // =======================================================
-add_action('admin_menu', function() {
-    add_submenu_page(
-        'edit.php?post_type=alojamiento',
-        __('Ajustes de Alojamiento', 'tureserva'),
-        __('Ajustes', 'tureserva'),
-        'manage_options',
-        'tureserva-ajustes-alojamiento',
-        'tureserva_render_ajustes_alojamiento_page'
-    );
-});
-
-// =======================================================
-// 🧾 Renderizar página de ajustes con pestañas
-// =======================================================
-function tureserva_render_ajustes_alojamiento_page() {
-
-    // =======================================================
-    // 💾 GUARDAR AJUSTES
-    // =======================================================
-    if (isset($_POST['tureserva_ajustes_nonce']) && wp_verify_nonce($_POST['tureserva_ajustes_nonce'], 'tureserva_ajustes_action')) {
-
-        // --- Sección General ---
-        update_option('tureserva_checkin', sanitize_text_field($_POST['checkin']));
-        update_option('tureserva_checkout', sanitize_text_field($_POST['checkout']));
-        update_option('tureserva_capacidad_maxima', intval($_POST['capacidad_maxima']));
-        update_option('tureserva_divisa', sanitize_text_field($_POST['divisa']));
-        update_option('tureserva_formato_precio', sanitize_text_field($_POST['formato_precio']));
-
-        // --- Sección Email (Administrador) ---
-        $tipos_admin = ['pendiente', 'aprobada', 'pagada', 'cancelada'];
-        foreach ($tipos_admin as $slug) {
-            update_option("tureserva_email_{$slug}_activo", isset($_POST["email_{$slug}_activo"]));
-            update_option("tureserva_email_{$slug}_tema", sanitize_text_field($_POST["email_{$slug}_tema"] ?? ''));
-            update_option("tureserva_email_{$slug}_cabecera", sanitize_text_field($_POST["email_{$slug}_cabecera"] ?? ''));
-            update_option("tureserva_email_{$slug}_cuerpo", wp_kses_post($_POST["email_{$slug}_cuerpo"] ?? ''));
-            update_option("tureserva_email_{$slug}_destinos", sanitize_text_field($_POST["email_{$slug}_destinos"] ?? ''));
+if ( isset( $_POST['tureserva_save_settings'] ) && check_admin_referer( 'tureserva_save_settings_nonce' ) ) {
+    foreach ( $_POST as $key => $value ) {
+        if ( strpos( $key, 'tureserva_' ) === 0 ) {
+            update_option( sanitize_text_field( $key ), sanitize_text_field( $value ) );
         }
-
-        // --- Sección Email (Cliente) ---
-        $tipos_cliente = ['nueva_admin', 'nueva_usuario', 'aprobada', 'cancelada', 'registro', 'bloque_cancelacion'];
-        foreach ($tipos_cliente as $slug) {
-            update_option("tureserva_cliente_email_{$slug}_activo", isset($_POST["cliente_email_{$slug}_activo"]));
-            update_option("tureserva_cliente_email_{$slug}_tema", sanitize_text_field($_POST["cliente_email_{$slug}_tema"] ?? ''));
-            update_option("tureserva_cliente_email_{$slug}_cabecera", sanitize_text_field($_POST["cliente_email_{$slug}_cabecera"] ?? ''));
-            update_option("tureserva_cliente_email_{$slug}_cuerpo", wp_kses_post($_POST["cliente_email_{$slug}_cuerpo"] ?? ''));
-        }
-
-        // --- Email Pre-checkin (1h antes) ---
-        update_option('tureserva_cliente_email_precheckin_activo', isset($_POST['cliente_email_precheckin_activo']));
-        update_option('tureserva_cliente_email_precheckin_tema', sanitize_text_field($_POST['cliente_email_precheckin_tema'] ?? ''));
-        update_option('tureserva_cliente_email_precheckin_cuerpo', wp_kses_post($_POST['cliente_email_precheckin_cuerpo'] ?? ''));
-
-        // --- Campañas especiales ---
-        update_option('tureserva_cliente_email_campania_tema', sanitize_text_field($_POST['cliente_email_campania_tema'] ?? ''));
-        update_option('tureserva_cliente_email_campania_cuerpo', wp_kses_post($_POST['cliente_email_campania_cuerpo'] ?? ''));
-
-        echo '<div class="updated notice"><p>' . __('✅ Ajustes guardados correctamente.', 'tureserva') . '</p></div>';
     }
-
-    // =======================================================
-    // 🔄 CARGAR VALORES
-    // =======================================================
-    $checkin  = get_option('tureserva_checkin', '14:00');
-    $checkout = get_option('tureserva_checkout', '12:00');
-    $capacidad = get_option('tureserva_capacidad_maxima', 6);
-    $divisa = get_option('tureserva_divisa', 'USD');
-    $formato_precio = get_option('tureserva_formato_precio', '$0,000.00');
-
-    ?>
-
-    <div class="wrap">
-        <h1><span class="dashicons dashicons-admin-generic" style="color:#2271b1;margin-right:8px;"></span><?php _e('Ajustes de Alojamiento', 'tureserva'); ?></h1>
-        <p class="description"><?php _e('Configura los parámetros globales y opciones avanzadas aplicables a todos los alojamientos.', 'tureserva'); ?></p>
-
-        <style>
-            .nav-tab-wrapper { margin-top: 20px; }
-            .tureserva-card {
-                background: #fff;
-                padding: 20px;
-                margin-top: 20px;
-                border-radius: 8px;
-                box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-                max-width: 900px;
-            }
-            .tureserva-card h2 { font-size: 1.2em; margin-bottom: 15px; }
-            .tab-section { display: none; }
-            .tab-section.active { display: block; }
-            hr { border: none; border-top: 1px solid #ddd; margin: 30px 0; }
-        </style>
-
-        <h2 class="nav-tab-wrapper">
-            <a href="#general" class="nav-tab nav-tab-active"><?php _e('General', 'tureserva'); ?></a>
-            <a href="#email_admin" class="nav-tab"><?php _e('Email (Administrador)', 'tureserva'); ?></a>
-            <a href="#email_cliente" class="nav-tab"><?php _e('Email (Cliente)', 'tureserva'); ?></a>
-            <a href="#pagos" class="nav-tab"><?php _e('Pagos', 'tureserva'); ?></a>
-            <a href="#sync" class="nav-tab"><?php _e('Sincronización', 'tureserva'); ?></a>
-            <a href="#avanzado" class="nav-tab"><?php _e('Avanzado', 'tureserva'); ?></a>
-        </h2>
-
-        <form method="post">
-            <?php wp_nonce_field('tureserva_ajustes_action', 'tureserva_ajustes_nonce'); ?>
-
-            <!-- =======================================================
-                 PESTAÑA GENERAL
-            ======================================================= -->
-            <div id="general" class="tureserva-card tab-section active">
-                <h2><?php _e('Parámetros generales', 'tureserva'); ?></h2>
-                <table class="form-table">
-                    <tr>
-                        <th><label for="checkin"><?php _e('Hora de Check-in', 'tureserva'); ?></label></th>
-                        <td><input type="time" id="checkin" name="checkin" value="<?php echo esc_attr($checkin); ?>"></td>
-                    </tr>
-                    <tr>
-                        <th><label for="checkout"><?php _e('Hora de Check-out', 'tureserva'); ?></label></th>
-                        <td><input type="time" id="checkout" name="checkout" value="<?php echo esc_attr($checkout); ?>"></td>
-                    </tr>
-                    <tr>
-                        <th><label for="capacidad_maxima"><?php _e('Capacidad máxima por alojamiento', 'tureserva'); ?></label></th>
-                        <td><input type="number" id="capacidad_maxima" name="capacidad_maxima" value="<?php echo esc_attr($capacidad); ?>" min="1" max="20"></td>
-                    </tr>
-                    <tr>
-                        <th><label for="divisa"><?php _e('Divisa', 'tureserva'); ?></label></th>
-                        <td>
-                            <select id="divisa" name="divisa">
-                                <option value="USD" <?php selected($divisa, 'USD'); ?>>USD – Dólar estadounidense</option>
-                                <option value="EUR" <?php selected($divisa, 'EUR'); ?>>EUR – Euro</option>
-                                <option value="COP" <?php selected($divisa, 'COP'); ?>>COP – Peso colombiano</option>
-                                <option value="PAB" <?php selected($divisa, 'PAB'); ?>>PAB – Balboa panameño</option>
-                            </select>
-                        </td>
-                    </tr>
-                    <tr>
-                        <th><label for="formato_precio"><?php _e('Formato de precio', 'tureserva'); ?></label></th>
-                        <td>
-                            <input type="text" id="formato_precio" name="formato_precio" value="<?php echo esc_attr($formato_precio); ?>">
-                            <p class="description"><?php _e('Ejemplo: $0,000.00 — puede usar separadores de miles y decimales.', 'tureserva'); ?></p>
-                        </td>
-                    </tr>
-                </table>
-            </div>
-
-            <!-- =======================================================
-                 EMAIL ADMINISTRADOR
-            ======================================================= -->
-            <div id="email_admin" class="tureserva-card tab-section">
-                <h2><?php _e('Emails del administrador', 'tureserva'); ?></h2>
-                <p><?php _e('Define los correos automáticos que el sistema enviará al administrador en diferentes etapas de la reserva.', 'tureserva'); ?></p>
-                <?php
-                $tipos = [
-                    'pendiente' => __('Email de reserva pendiente', 'tureserva'),
-                    'aprobada'  => __('Email de reserva aprobada', 'tureserva'),
-                    'pagada'    => __('Email de reserva pagada', 'tureserva'),
-                    'cancelada' => __('Email de reserva cancelada', 'tureserva'),
-                ];
-                foreach ($tipos as $slug => $titulo) :
-                    $activar   = get_option("tureserva_email_{$slug}_activo", true);
-                    $tema      = get_option("tureserva_email_{$slug}_tema", "%site_title% – Reserva #%booking_id%");
-                    $cabecera  = get_option("tureserva_email_{$slug}_cabecera", ucfirst($slug));
-                    $cuerpo    = get_option("tureserva_email_{$slug}_cuerpo", "La reserva #%booking_id% requiere atención.");
-                    $destinos  = get_option("tureserva_email_{$slug}_destinos", get_option('admin_email'));
-                ?>
-                    <hr>
-                    <h3><?php echo esc_html($titulo); ?></h3>
-                    <table class="form-table">
-                        <tr>
-                            <th><?php _e('Activar notificación', 'tureserva'); ?></th>
-                            <td><input type="checkbox" name="email_<?php echo esc_attr($slug); ?>_activo" value="1" <?php checked($activar, true); ?>> <?php _e('Enviar automáticamente', 'tureserva'); ?></td>
-                        </tr>
-                        <tr>
-                            <th><label><?php _e('Tema', 'tureserva'); ?></label></th>
-                            <td><input type="text" name="email_<?php echo esc_attr($slug); ?>_tema" value="<?php echo esc_attr($tema); ?>" class="regular-text"></td>
-                        </tr>
-                        <tr>
-                            <th><label><?php _e('Cabecera', 'tureserva'); ?></label></th>
-                            <td><input type="text" name="email_<?php echo esc_attr($slug); ?>_cabecera" value="<?php echo esc_attr($cabecera); ?>" class="regular-text"></td>
-                        </tr>
-                        <tr>
-                            <th><label><?php _e('Cuerpo', 'tureserva'); ?></label></th>
-                            <td><?php wp_editor($cuerpo, "email_{$slug}_cuerpo", ['textarea_name'=>"email_{$slug}_cuerpo",'textarea_rows'=>8,'teeny'=>true,'media_buttons'=>false]); ?></td>
-                        </tr>
-                        <tr>
-                            <th><label><?php _e('Destinatarios', 'tureserva'); ?></label></th>
-                            <td><input type="text" name="email_<?php echo esc_attr($slug); ?>_destinos" value="<?php echo esc_attr($destinos); ?>" class="regular-text"></td>
-                        </tr>
-                    </table>
-                <?php endforeach; ?>
-            </div>
-
-            <!-- =======================================================
-                 EMAIL CLIENTE (incluye pre-checkin y campañas)
-            ======================================================= -->
-            <div id="email_cliente" class="tureserva-card tab-section">
-                <h2><?php _e('Emails del cliente', 'tureserva'); ?></h2>
-                <p><?php _e('Correos automáticos y programados que el sistema enviará al huésped.', 'tureserva'); ?></p>
-
-                <?php
-                $tipos_cliente = [
-                    'nueva_admin' => __('Email de nueva reserva (confirmación por administrador)', 'tureserva'),
-                    'nueva_usuario' => __('Email de nueva reserva (confirmación por usuario)', 'tureserva'),
-                    'aprobada' => __('Email de reserva aprobada', 'tureserva'),
-                    'cancelada' => __('Email de reserva cancelada', 'tureserva'),
-                    'registro' => __('Email de registro de cuenta', 'tureserva'),
-                    'bloque_cancelacion' => __('Plantilla de detalles de cancelación', 'tureserva'),
-                ];
-                foreach ($tipos_cliente as $slug => $titulo) :
-                    $tema = get_option("tureserva_cliente_email_{$slug}_tema", "%site_title% – Reserva #%booking_id%");
-                    $cabecera = get_option("tureserva_cliente_email_{$slug}_cabecera", ucfirst($slug));
-                    $cuerpo = get_option("tureserva_cliente_email_{$slug}_cuerpo", "Estimado cliente, su reserva está en proceso.");
-                ?>
-                    <hr>
-                    <h3><?php echo esc_html($titulo); ?></h3>
-                    <table class="form-table">
-                        <tr>
-                            <th><label><?php _e('Tema', 'tureserva'); ?></label></th>
-                            <td><input type="text" name="cliente_email_<?php echo esc_attr($slug); ?>_tema" value="<?php echo esc_attr($tema); ?>" class="regular-text"></td>
-                        </tr>
-                        <tr>
-                            <th><label><?php _e('Cabecera', 'tureserva'); ?></label></th>
-                            <td><input type="text" name="cliente_email_<?php echo esc_attr($slug); ?>_cabecera" value="<?php echo esc_attr($cabecera); ?>" class="regular-text"></td>
-                        </tr>
-                        <tr>
-                            <th><label><?php _e('Cuerpo del correo', 'tureserva'); ?></label></th>
-                            <td><?php wp_editor($cuerpo, "cliente_email_{$slug}_cuerpo", ['textarea_name'=>"cliente_email_{$slug}_cuerpo",'textarea_rows'=>8,'teeny'=>true,'media_buttons'=>false]); ?></td>
-                        </tr>
-                    </table>
-                <?php endforeach; ?>
-
-                <!-- BLOQUE EXTRA: pre-checkin y campañas -->
-                <?php include TURESERVA_PATH . 'admin/pages/partials/email-precheckin-campania.php'; ?>
-            </div>
-
-            <!-- =======================================================
-                 RESTO DE PESTAÑAS
-            ======================================================= -->
-            <div id="pagos" class="tureserva-card tab-section"><h2><?php _e('Opciones de pago', 'tureserva'); ?></h2><p><?php _e('Próximamente: integración con Stripe y PayPal.', 'tureserva'); ?></p></div>
-            <div id="sync" class="tureserva-card tab-section"><h2><?php _e('Sincronización Cloud y Calendarios', 'tureserva'); ?></h2><p><?php _e('Próximamente: conexión con Supabase e iCal.', 'tureserva'); ?></p></div>
-            <div id="avanzado" class="tureserva-card tab-section"><h2><?php _e('Opciones avanzadas', 'tureserva'); ?></h2><p><?php _e('Configuraciones adicionales del sistema TuReserva.', 'tureserva'); ?></p></div>
-
-            <?php submit_button(__('Guardar ajustes', 'tureserva')); ?>
-        </form>
-    </div>
-
-    <script>
-    const tabs=document.querySelectorAll('.nav-tab');
-    const sections=document.querySelectorAll('.tab-section');
-    tabs.forEach(tab=>{
-        tab.addEventListener('click',e=>{
-            e.preventDefault();
-            tabs.forEach(t=>t.classList.remove('nav-tab-active'));
-            sections.forEach(s=>s.classList.remove('active'));
-            tab.classList.add('nav-tab-active');
-            const target=document.querySelector(tab.getAttribute('href'));
-            target.classList.add('active');
-        });
-    });
-    </script>
-
-    <?php
+    echo '<div class="updated"><p>' . esc_html__( 'Ajustes guardados correctamente.', 'tureserva' ) . '</p></div>';
 }
+
+// =======================================================
+// 🧭 DEFINIR PESTAÑAS DISPONIBLES
+// =======================================================
+$tabs = array(
+    'general'          => __( 'General', 'tureserva' ),
+    'emails-admin'     => __( 'Emails del admin', 'tureserva' ),
+    'emails-cliente'   => __( 'Emails del cliente', 'tureserva' ),
+    'ajustes-email'    => __( 'Ajustes de email', 'tureserva' ),
+    'pagos'            => __( 'Pasarelas de pago', 'tureserva' ),
+    'extensiones'      => __( 'Extensiones', 'tureserva' ),
+    'avanzado'         => __( 'Avanzado', 'tureserva' ),
+    'licencia'         => __( 'Licencia', 'tureserva' ),
+);
+
+// Pestaña activa actual
+$current_tab = isset( $_GET['tab'] ) ? sanitize_text_field( $_GET['tab'] ) : 'general';
+
+// =======================================================
+// 🎨 ESTILOS BÁSICOS
+// =======================================================
+echo '<style>
+    .tureserva-settings-tabs { margin-top: 20px; }
+    .tureserva-settings-tabs a {
+        display:inline-block; padding:8px 16px; text-decoration:none;
+        border:1px solid #ccc; border-bottom:none; margin-right:4px; background:#f1f1f1;
+        font-weight:600; color:#333; border-radius:4px 4px 0 0;
+    }
+    .tureserva-settings-tabs a.active { background:#fff; border-bottom:1px solid #fff; }
+    .tureserva-settings-content {
+        background:#fff; padding:20px; border:1px solid #ccc;
+        border-radius:0 4px 4px 4px;
+    }
+    .tureserva-settings-content h2 { margin-top:0; }
+</style>';
+
+// =======================================================
+// 🧱 RENDER: ENCABEZADO Y PESTAÑAS
+// =======================================================
+echo '<div class="wrap">';
+echo '<h1>' . esc_html__( 'Ajustes de Alojamiento', 'tureserva' ) . '</h1>';
+
+echo '<div class="tureserva-settings-tabs">';
+foreach ( $tabs as $tab => $label ) {
+    $active = ( $current_tab === $tab ) ? 'active' : '';
+    $url = admin_url( 'edit.php?post_type=alojamiento&page=tureserva-ajustes-alojamiento&tab=' . $tab );
+    echo '<a class="' . esc_attr( $active ) . '" href="' . esc_url( $url ) . '">' . esc_html( $label ) . '</a>';
+}
+echo '</div>';
+
+echo '<div class="tureserva-settings-content">';
+
+// =======================================================
+// 📄 CARGAR CONTENIDO DE CADA PESTAÑA
+// =======================================================
+switch ( $current_tab ) {
+
+    case 'general':
+        echo '<h2>' . esc_html__( 'Ajustes Generales', 'tureserva' ) . '</h2>';
+        echo '<form method="post">';
+        wp_nonce_field( 'tureserva_save_settings_nonce' );
+        echo '<label>' . esc_html__( 'Nombre del Hotel', 'tureserva' ) . '</label><br>';
+        echo '<input type="text" name="tureserva_nombre_hotel" value="' . esc_attr( get_option( 'tureserva_nombre_hotel' ) ) . '" class="regular-text"><br><br>';
+        submit_button( __( 'Guardar cambios', 'tureserva' ), 'primary', 'tureserva_save_settings' );
+        echo '</form>';
+        break;
+
+    case 'emails-admin':
+        include TURESERVA_PATH . 'admin/pages/partials/emails/admin.php';
+        break;
+
+    case 'emails-cliente':
+        include TURESERVA_PATH . 'admin/pages/partials/emails/cliente.php';
+        break;
+
+    case 'ajustes-email':
+        include TURESERVA_PATH . 'admin/pages/partials/emails/campañas.php';
+        break;
+
+    case 'pagos':
+        echo '<h2>' . esc_html__( 'Pasarelas de Pago', 'tureserva' ) . '</h2>';
+        include TURESERVA_PATH . 'admin/pages/partials/pagos/stripe.php';
+        include TURESERVA_PATH . 'admin/pages/partials/pagos/paypal.php';
+        include TURESERVA_PATH . 'admin/pages/partials/pagos/transferencia.php';
+        include TURESERVA_PATH . 'admin/pages/partials/pagos/manual.php';
+        break;
+
+    case 'extensiones':
+        echo '<h2>' . esc_html__( 'Extensiones y Add-ons', 'tureserva' ) . '</h2>';
+        echo '<p>' . esc_html__( 'Aquí se mostrarán las extensiones instaladas o disponibles.', 'tureserva' ) . '</p>';
+        break;
+
+    case 'avanzado':
+        echo '<h2>' . esc_html__( 'Opciones Avanzadas', 'tureserva' ) . '</h2>';
+        echo '<p>' . esc_html__( 'Herramientas de depuración, sincronización y registros del sistema.', 'tureserva' ) . '</p>';
+        break;
+
+    case 'licencia':
+        echo '<h2>' . esc_html__( 'Licencia', 'tureserva' ) . '</h2>';
+        echo '<p>' . esc_html__( 'Ingrese su clave de licencia para habilitar actualizaciones automáticas y soporte.', 'tureserva' ) . 
+             ' <a href="#" target="_blank">' . esc_html__( 'Más info', 'tureserva' ) . '</a></p>';
+
+        $license_key = get_option( 'tureserva_license_key', '' );
+
+        echo '<form method="post">';
+        wp_nonce_field( 'tureserva_save_settings_nonce' );
+        echo '<label for="tureserva_license_key">' . esc_html__( 'Clave de licencia', 'tureserva' ) . '</label><br>';
+        echo '<input type="text" name="tureserva_license_key" id="tureserva_license_key" value="' . esc_attr( $license_key ) . '" class="regular-text"><br><br>';
+        submit_button( __( 'Guardar cambios', 'tureserva' ), 'primary', 'tureserva_save_settings' );
+        echo '</form>';
+        break;
+
+    default:
+        echo '<p>' . esc_html__( 'Seleccione una pestaña para configurar los ajustes.', 'tureserva' ) . '</p>';
+        break;
+}
+
+echo '</div></div>';

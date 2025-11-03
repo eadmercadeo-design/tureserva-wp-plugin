@@ -1,16 +1,86 @@
+/**
+ * ==========================================================
+ * ESTILOS: Ajustes Globales — TuReserva
+ * ==========================================================
+ * Mejora visual del formulario de ajustes generales
+ * ==========================================================
+ */
+
+/* 🧱 Contenedor principal */
 #tureserva-form-ajustes {
-    background: #fff;
-    border-radius: 10px;
-    padding: 20px;
+    background: #ffffff;
     border: 1px solid #e3e3e3;
+    border-radius: 10px;
+    padding: 24px 28px;
+    margin-top: 15px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+}
+
+/* 📋 Campos de formulario */
+#tureserva-form-ajustes table.form-table th {
+    width: 220px;
+    vertical-align: middle;
+    font-weight: 600;
+    color: #333;
+}
+
+#tureserva-form-ajustes table.form-table td {
+    padding: 10px 0;
 }
 
 #tureserva-form-ajustes select,
-#tureserva-form-ajustes input {
-    min-width: 200px;
+#tureserva-form-ajustes input[type="text"],
+#tureserva-form-ajustes input[type="number"] {
+    min-width: 220px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    padding: 6px 8px;
+    font-size: 14px;
 }
 
-#tureserva-resultado-ajax .updated p,
-#tureserva-resultado-ajax .error p {
+/* 🧾 Botón de guardado */
+#tureserva-guardar-ajustes {
+    font-size: 15px;
+    padding: 8px 20px;
+    border-radius: 6px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+#tureserva-guardar-ajustes:disabled {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+/* ✅ Mensaje de resultado AJAX */
+#tureserva-resultado-ajax {
+    margin-top: 20px;
+    display: none;
+}
+
+#tureserva-resultado-ajax .updated,
+#tureserva-resultado-ajax .error {
+    border-radius: 6px;
+    padding: 10px 14px;
     font-weight: 500;
+    animation: fadeIn 0.4s ease-out;
+}
+
+#tureserva-resultado-ajax .updated {
+    background: #e7f8ec;
+    border-left: 4px solid #46b450;
+    color: #2d6a32;
+}
+
+#tureserva-resultado-ajax .error {
+    background: #fbeaea;
+    border-left: 4px solid #dc3232;
+    color: #8a1c1c;
+}
+
+/* ✨ Animación de aparición */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: translateY(0); }
 }
