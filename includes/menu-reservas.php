@@ -125,17 +125,15 @@ add_submenu_page(
     );
 
    
-    // Cloud Sync (Supabase)
-    add_action('admin_menu', function() {
+        // Cloud Sync (Supabase)
     add_submenu_page(
         'edit.php?post_type=reserva',
         __('Cloud Sync (Supabase)', 'tureserva'),
         __('Cloud Sync (Supabase)', 'tureserva'),
         'manage_options',
-        'panel-supabase', // 👈 usa el slug real del archivo
+        'panel-supabase', // Slug del archivo real
         'tureserva_render_supabase_panel'
     );
-
 
     // Informes
     add_submenu_page(
@@ -156,8 +154,23 @@ add_submenu_page(
         'tureserva-extensiones',
         'tureserva_extensiones_page'
     );
+
+} // ✅ Cierra correctamente la función tureserva_admin_menu_reservas()
+/**
+ * ==========================================================
+ * CALLBACK: Renderizar la página de Cloud Sync (Supabase)
+ * ==========================================================
+ */
+function tureserva_render_supabase_panel() {
+    require_once TURESERVA_PATH . 'admin/pages/panel-supabase.php';
 }
+
+// =======================================================
+// 🔗 Registrar el menú en WordPress
+// =======================================================
 add_action('admin_menu', 'tureserva_admin_menu_reservas', 9);
+
+
 // =======================================================
 // 📅 Página de Calendario — Callback con FullCalendar
 // =======================================================
@@ -176,7 +189,6 @@ function tureserva_calendario_page() {
         <script>
         document.addEventListener('DOMContentLoaded', function() {
             const calendarEl = document.getElementById('tureserva-calendar');
-
             const calendar = new FullCalendar.Calendar(calendarEl, {
                 initialView: 'dayGridMonth',
                 locale: 'es',
@@ -187,21 +199,14 @@ function tureserva_calendario_page() {
                     right: 'dayGridMonth,timeGridWeek,timeGridDay'
                 },
                 events: [
-                    {
-                        title: 'Reserva #001',
-                        start: '2025-11-04',
-                        end: '2025-11-06'
-                    },
-                    {
-                        title: 'Reserva #002',
-                        start: '2025-11-10'
-                    }
+                    { title: 'Reserva #001', start: '2025-11-04', end: '2025-11-06' },
+                    { title: 'Reserva #002', start: '2025-11-10' }
                 ]
             });
-
             calendar.render();
         });
         </script>
     </div>
     <?php
 }
+

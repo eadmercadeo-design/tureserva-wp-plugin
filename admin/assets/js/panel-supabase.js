@@ -1,37 +1,28 @@
 jQuery(document).ready(function($){
 
-    // ========================================
-    // 🔘 PROBAR CONEXIÓN
-    // ========================================
-    $('#tureserva-probar-conexion').on('click', function(e){
-        e.preventDefault();
-        const $btn = $(this);
-        $btn.text('Conectando...').prop('disabled', true);
+    // =======================================================
+    // 🧰 Función auxiliar: mostrar mensajes tipo "notice"
+    // =======================================================
+    function showNotice(type, message) {
+        const notice = $('<div>')
+            .addClass('notice is-dismissible')
+            .addClass(type === 'error' ? 'notice-error' : 'notice-success')
+            .append(`<p><strong>${message}</strong></p>`);
+        $('.wrap h1').after(notice);
+        setTimeout(() => notice.fadeOut(400, () => notice.remove()), 5000);
+    }
 
-        $.post(ajaxurl, { action: 'tureserva_test_supabase_connection' }, function(response){
-            if(response.success){
-                alert('✅ ' + response.data);
-            } else {
-                alert('❌ ' + response.data);
-            }
-            $btn.text('Probar conexión').prop('disabled', false);
-        }).fail(function(){
-            alert('⚠️ Error de comunicación con el servidor.');
-            $btn.text('Probar conexión').prop('disabled', false);
-        });
-    });
-
-    // ========================================
+    // =======================================================
     // 💾 GUARDAR CONFIGURACIÓN
-    // ========================================
+    // =======================================================
     $('#tureserva-guardar-supabase').on('click', function(e){
         e.preventDefault();
         const $btn = $(this);
-        const url = $('#tureserva_supabase_url').val();
-        const key = $('#tureserva_supabase_key').val();
+        const url = $('#tureserva_supabase_url').val().trim();
+        const key = $('#tureserva_supabase_key').val().trim();
 
         if(!url || !key){
-            alert('Por favor completa los campos URL y API Key.');
+            showNotice('error', 'Por favor completa los campos URL y API Key.');
             return;
         }
 
@@ -43,14 +34,56 @@ jQuery(document).ready(function($){
             key: key
         }, function(response){
             if(response.success){
-                alert('✅ Configuración guardada correctamente.');
+                showNotice('success', '✅ Configuración guardada correctamente.');
             } else {
-                alert('❌ ' + response.data);
+                showNotice('error', '❌ ' + response.data);
             }
-            $btn.text('Guardar configuración').prop('disabled', false);
         }).fail(function(){
-            alert('⚠️ Error de comunicación con el servidor.');
-            $btn.text('Guardar configuración').prop('disabled', false);
+            showNotice('error', '⚠️ Error de comunicación con el servidor.');
+        }).always(function(){
+            $btn.text('💾 Guardar configuración').prop('disabled', false);
+        });
+    });
+
+    // =======================================================
+    // 🔌 PROBAR CONEXIÓN
+    // =======================================================
+    $('#tureserva-probar-conexion').on('click', function(e){
+        e.preventDefault();
+        const $btn = $(this);
+        $btn.text('Conectando...').prop('disabled', true);
+
+        $.post(ajaxurl, { action: 'tureserva_test_supabase_connection' }, function(response){
+            if(response.success){
+                showNotice('success', '✅ ' + response.data);
+            } else {
+                showNotice('error', '❌ ' + response.data);
+            }
+        }).fail(function(){
+            showNotice('error', '⚠️ Error de comunicación con el servidor.');
+        }).always(function(){
+            $btn.text('🧪 Probar conexión').prop('disabled', false);
+        });
+    });
+
+    // =======================================================
+    // 🔁 SINCRONIZAR ALOJAMIENTOS
+    // =======================================================
+    $('#tureserva-sync-alojamientos').on('click', function(e){
+        e.preventDefault();
+        const $btn = $(this);
+        $btn.text('Sincronizando...').prop('disabled', true);
+
+        $.post(ajaxurl, { action: 'tureserva_sync_alojamientos' }, function(response){
+            if(response.success){
+                showNotice('success', response.data || '✅ Sincronización completada.');
+            } else {
+                showNotice('error', '❌ ' + (response.data || 'No se pudo sincronizar.'));
+            }
+        }).fail(function(){
+            showNotice('error', '⚠️ Error de conexión con el servidor.');
+        }).always(function(){
+            $btn.text('🔁 Sincronizar alojamientos').prop('disabled', false);
         });
     });
 
