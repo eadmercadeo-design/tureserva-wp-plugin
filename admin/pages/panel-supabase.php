@@ -1,42 +1,45 @@
 <?php
 /**
  * ==========================================================
- * ADMIN PAGE: TuReserva Cloud — Supabase (versión final)
+ * ADMIN PAGE: TuReserva Cloud — Supabase (versión consolidada)
  * ==========================================================
- * - Configuración Supabase (URL y API key)
- * - Dashboard de pagos sincronizados
- * - Sincronización manual (usa funciones del core-sync.php)
+ * - Configuración Supabase (URL y API Key)
+ * - Dashboard con pagos sincronizados en tiempo real
+ * - Integración con core-sync.php (para conexión y sincronización)
  * ==========================================================
  */
 
 if (!defined('ABSPATH')) exit;
 
 // =======================================================
-// 🧭 Registrar submenú
+// 🧭 Registrar submenú (slug correcto y permisos)
 // =======================================================
 add_action('admin_menu', function() {
     add_submenu_page(
-        'edit.php?post_type=reserva',
-        __('Cloud Sync (Supabase)', 'tureserva'),
-        __('Cloud Sync (Supabase)', 'tureserva'),
-        'manage_options',
-        'panel-supabase',
-        'tureserva_render_supabase_dashboard_page'
+        'edit.php?post_type=reserva',              // 🔹 Menú padre
+        __('Cloud Sync (Supabase)', 'tureserva'),  // Título de la página
+        __('Cloud Sync (Supabase)', 'tureserva'),  // Título del menú
+        'manage_options',                          // 🔐 Permiso
+        'tureserva-cloud-sync',                    // ✅ Slug definitivo
+        'tureserva_render_supabase_dashboard_page' // Callback
     );
 });
 
 // =======================================================
-// ⚙️ Renderizado principal
+// ⚙️ Renderizado principal — Tabs Dashboard / Configuración
 // =======================================================
 function tureserva_render_supabase_dashboard_page() {
     $tab = isset($_GET['tab']) ? sanitize_text_field($_GET['tab']) : 'dashboard';
     ?>
     <div class="wrap">
-        <h1>☁️ TuReserva Cloud — Supabase</h1>
-        <h2 class="nav-tab-wrapper">
-            <a href="?page=panel-supabase&tab=dashboard" class="nav-tab <?php echo $tab === 'dashboard' ? 'nav-tab-active' : ''; ?>">📊 <?php _e('Dashboard', 'tureserva'); ?></a>
-            <a href="?page=panel-supabase&tab=settings" class="nav-tab <?php echo $tab === 'settings' ? 'nav-tab-active' : ''; ?>">⚙️ <?php _e('Configuración', 'tureserva'); ?></a>
-        </h2>
+       <h2 class="nav-tab-wrapper">
+    <a href="?page=tureserva-cloud-sync&tab=dashboard"
+       class="nav-tab <?php echo $tab === 'dashboard' ? 'nav-tab-active' : ''; ?>">📊 Dashboard</a>
+
+    <a href="?page=tureserva-cloud-sync&tab=settings"
+       class="nav-tab <?php echo $tab === 'settings' ? 'nav-tab-active' : ''; ?>">⚙️ Configuración</a>
+</h2>
+
         <?php
         if ($tab === 'settings') {
             tureserva_render_supabase_settings_tab();
@@ -59,18 +62,37 @@ function tureserva_render_supabase_settings_tab() {
         <table class="form-table">
             <tr>
                 <th><label for="tureserva_supabase_url">Supabase URL</label></th>
-                <td><input type="text" id="tureserva_supabase_url" name="tureserva_supabase_url" value="<?php echo esc_attr($url); ?>" class="regular-text" placeholder="https://xyzcompany.supabase.co/rest/v1" required></td>
+                <td>
+                    <input type="text" id="tureserva_supabase_url" name="tureserva_supabase_url"
+                        value="<?php echo esc_attr($url); ?>"
+                        class="regular-text"
+                        placeholder="https://xyzcompany.supabase.co/rest/v1"
+                        required>
+                </td>
             </tr>
             <tr>
                 <th><label for="tureserva_supabase_key">Supabase API Key</label></th>
-                <td><input type="password" id="tureserva_supabase_key" name="tureserva_supabase_key" value="<?php echo esc_attr($key); ?>" class="regular-text" required></td>
+                <td>
+                    <input type="password" id="tureserva_supabase_key" name="tureserva_supabase_key"
+                        value="<?php echo esc_attr($key); ?>"
+                        class="regular-text"
+                        required>
+                </td>
             </tr>
         </table>
+
         <p>
-            <button type="button" id="tureserva-guardar-supabase" class="button button-primary">💾 Guardar configuración</button>
-            <button type="button" id="tureserva-probar-conexion" class="button">🧪 Probar conexión</button>
-            <button type="button" id="tureserva-sync-alojamientos" class="button">🔁 Sincronizar alojamientos</button>
+            <button type="button" id="tureserva-guardar-supabase" class="button button-primary">
+                💾 Guardar configuración
+            </button>
+            <button type="button" id="tureserva-probar-conexion" class="button button-secondary">
+                🧪 Probar conexión
+            </button>
+            <button type="button" id="tureserva-sync-alojamientos" class="button">
+                🔁 Sincronizar alojamientos
+            </button>
         </p>
+
         <div id="tureserva-supabase-status" style="margin-top:10px;color:#555;font-weight:bold;"></div>
     </form>
     <?php
@@ -125,7 +147,7 @@ function tureserva_render_supabase_dashboard_tab() {
                                     <td>${p.cliente || '-'}</td>
                                     <td>${p.monto || 0}</td>
                                     <td>${p.moneda || ''}</td>
-                                    <td><span style="color:${p.estado === 'pagado' ? 'green':'#999'};">${p.estado}</span></td>
+                                    <td><span style="color:${p.estado === 'pagado' ? 'green' : '#999'};">${p.estado}</span></td>
                                     <td>${p.fecha || ''}</td>
                                 </tr>`;
                             });
@@ -253,7 +275,7 @@ add_action('wp_ajax_tureserva_save_supabase_settings', function() {
 // 📜 Encolar JS solo en el panel Supabase
 // =======================================================
 add_action('admin_enqueue_scripts', function($hook) {
-    if (strpos($hook, 'panel-supabase') !== false) {
+    if (strpos($hook, 'tureserva_page_tureserva-cloud-sync') !== false) {
         wp_enqueue_script(
             'tureserva-panel-supabase',
             TURESERVA_URL . 'admin/assets/js/panel-supabase.js',

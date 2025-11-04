@@ -176,3 +176,29 @@ function tureserva_sync_test_connection() {
     $code = wp_remote_retrieve_response_code( $response );
     return ( $code === 200 ) ? '✅ Conexión exitosa con Supabase' : '⚠️ Respuesta inesperada (' . $code . ')';
 }
+
+// =======================================================
+// 💳 SINCRONIZAR PAGOS — OPCIONAL (para versiones futuras)
+// =======================================================
+function tureserva_sync_pagos() {
+    $pagos = get_posts([
+        'post_type' => 'tureserva_pagos',
+        'post_status' => 'publish',
+        'posts_per_page' => 10
+    ]);
+
+    $data = [];
+
+    foreach ($pagos as $pago) {
+        $data[] = [
+            'codigo'     => get_post_meta($pago->ID, '_tureserva_pago_codigo', true),
+            'cliente'    => get_post_meta($pago->ID, '_tureserva_cliente_nombre', true),
+            'monto'      => get_post_meta($pago->ID, '_tureserva_pago_monto', true),
+            'moneda'     => get_post_meta($pago->ID, '_tureserva_pago_moneda', true),
+            'estado'     => get_post_meta($pago->ID, '_tureserva_pago_estado', true),
+            'fecha'      => get_the_date('Y-m-d H:i:s', $pago->ID)
+        ];
+    }
+
+    return tureserva_sync_to_supabase('tureserva_pagos', $data);
+}
