@@ -33,6 +33,26 @@ add_action('add_meta_boxes', function() {
         'default'
     );
 });
+// =======================================================
+// 🔢 Generar código único de pago
+// =======================================================
+function tureserva_generar_codigo_pago($post_id = 0) {
+    $ultimo = get_posts([
+        'post_type' => 'tureserva_pagos',
+        'posts_per_page' => 1,
+        'orderby' => 'date',
+        'order' => 'DESC'
+    ]);
+
+    $numero = 1;
+    if ($ultimo && isset($ultimo[0])) {
+        $ultimo_codigo = get_post_meta($ultimo[0]->ID, '_tureserva_pago_id', true);
+        if ($ultimo_codigo && preg_match('/PG-(\d+)/', $ultimo_codigo, $matches)) {
+            $numero = intval($matches[1]) + 1;
+        }
+    }
+    return 'PG-' . str_pad($numero, 4, '0', STR_PAD_LEFT);
+}
 
 // =======================================================
 // 🧾 Renderizar Detalles del Pago
@@ -41,23 +61,19 @@ function tureserva_render_metabox_pago_detalles($post) {
     $meta = get_post_meta($post->ID);
     ?>
     <table class="form-table">
-        <tr><th><label>Identidad</label></th>
-            <td><input type="text" name="_tureserva_pago_id" value="<?php echo esc_attr($meta['_tureserva_pago_id'][0] ?? ''); ?>" readonly /></td>
-        </tr>
+        <tr>
+    <th><label>Identidad</label></th>
+    <td>
+        <?php
+        $codigo_pago = $meta['_tureserva_pago_id'][0] ?? '';
+        if (empty($codigo_pago)) {
+            $codigo_pago = tureserva_generar_codigo_pago($post->ID);
+        }
+        ?>
+        <input type="text" name="_tureserva_pago_id" value="<?php echo esc_attr($codigo_pago); ?>" readonly />
+    </td>
+</tr>
 
-        <tr><th><label>Pasarela</label></th>
-            <td>
-                <select name="_tureserva_pasarela">
-                    <?php
-                    $pasarela = $meta['_tureserva_pasarela'][0] ?? '';
-                    $options = ['Stripe', 'PayPal', 'Manual'];
-                    foreach ($options as $opt) {
-                        printf('<option value="%s"%s>%s</option>', $opt, selected($opt, $pasarela, false), $opt);
-                    }
-                    ?>
-                </select>
-            </td>
-        </tr>
 
         <tr><th><label>Modo de pasarela</label></th>
             <td>

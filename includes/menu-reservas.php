@@ -124,6 +124,7 @@ add_submenu_page(
         'tureserva_calendar_sync_page'
     );
 
+   /*
     // Cloud Sync (Supabase)
     add_submenu_page(
         'edit.php?post_type=reserva',
@@ -133,6 +134,7 @@ add_submenu_page(
         'tureserva-cloud-sync',
         'tureserva_cloud_sync_page'
     );
+*/
 
     // Informes
     add_submenu_page(

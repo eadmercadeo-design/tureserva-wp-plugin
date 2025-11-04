@@ -37,6 +37,22 @@ add_action('admin_enqueue_scripts', function () {
 });
 
 // =======================================================
+// 🎨 Scripts para validación en la pantalla de pagos
+// =======================================================
+add_action('admin_enqueue_scripts', function($hook) {
+    global $post_type;
+    if ($post_type === 'tureserva_pagos') {
+        wp_enqueue_script(
+            'tureserva-pagos-validation',
+            TURESERVA_URL . 'admin/assets/js/pagos-validation.js',
+            [],
+            TURESERVA_VERSION,
+            true
+        );
+    }
+});
+
+// =======================================================
 // 🚀 FUNCIÓN PRINCIPAL DE INICIALIZACIÓN
 // =======================================================
 function tureserva_init() {
@@ -51,10 +67,7 @@ function tureserva_init() {
     require_once TURESERVA_PATH . 'includes/cpt-temporadas.php';
     require_once TURESERVA_PATH . 'includes/cpt-pagos.php'; // 💳
     require_once TURESERVA_PATH . 'admin/metaboxes/metabox-pago-detalles.php';
-    require_once TURESERVA_PATH . 'admin/metaboxes/metabox-pago-detalles.php';
     require_once TURESERVA_PATH . 'admin/metaboxes/metabox-pago-lateral.php';
-
-
 
     // -------------------------------------------------------
     // 🏷️ TAXONOMÍAS
@@ -138,16 +151,15 @@ function tureserva_init() {
     // 🌍 TRADUCCIONES
     // -------------------------------------------------------
     load_plugin_textdomain( 'tureserva', false, dirname( plugin_basename( __FILE__ ) ) . '/languages' );
-// =======================================================
-// 📊 Dashboard personalizado — TuReserva
-// =======================================================
-if (is_admin()) {
-    require_once TURESERVA_PATH . 'admin/dashboard/tureserva-dashboard.php';
-}
 
+    // -------------------------------------------------------
+    // 📊 Dashboard personalizado — TuReserva
+    // -------------------------------------------------------
+    if (is_admin()) {
+        require_once TURESERVA_PATH . 'admin/dashboard/tureserva-dashboard.php';
+    }
 }
 add_action( 'plugins_loaded', 'tureserva_init' );
-
 
 // =======================================================
 // 🗓️ ACTIVACIÓN DEL PLUGIN
@@ -175,7 +187,6 @@ function tureserva_on_activate() {
 }
 register_activation_hook( __FILE__, 'tureserva_on_activate' );
 
-
 // =======================================================
 // 🧹 DESACTIVACIÓN DEL PLUGIN
 // =======================================================
@@ -183,15 +194,11 @@ function tureserva_on_deactivate() {
     flush_rewrite_rules();
     do_action( 'tureserva_deactivated' );
 }
-
-
 register_deactivation_hook( __FILE__, 'tureserva_on_deactivate' );
-
 
 // =======================================================
 // 🧩 UTILIDAD OPCIONAL: CARGA AUTOMÁTICA DE CLASES
 // =======================================================
-// (Podrás usarla cuando empieces a convertir partes del core a clases)
 spl_autoload_register( function ( $class ) {
     if ( strpos( $class, 'TuReserva_' ) === 0 ) {
         $path = TURESERVA_PATH . 'classes/' . strtolower( str_replace( 'TuReserva_', '', $class ) ) . '.php';
