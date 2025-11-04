@@ -16,16 +16,14 @@ if (!defined('ABSPATH')) exit;
 // =======================================================
 add_action('admin_menu', function() {
     add_submenu_page(
-    'edit.php?post_type=reserva',
-    __('Cloud Sync (Supabase)', 'tureserva'),
-    __('Cloud Sync (Supabase)', 'tureserva'),
-    'manage_options',
-    'tureserva-supabase-dashboard',
-    'tureserva_render_supabase_dashboard_page'
-);
-
-}); // ✅ cierre correcto
-
+        'edit.php?post_type=reserva',
+        __('Cloud Sync (Supabase)', 'tureserva'),
+        __('Cloud Sync (Supabase)', 'tureserva'),
+        'manage_options',
+        'tureserva-supabase-dashboard',
+        'tureserva_render_supabase_dashboard_page'
+    );
+});
 
 // =======================================================
 // ⚙️ Renderizado principal
@@ -54,28 +52,25 @@ function tureserva_render_supabase_dashboard_page() {
 // 🧱 TAB 1: Configuración de Supabase
 // =======================================================
 function tureserva_render_supabase_settings_tab() {
-    if (isset($_POST['tureserva_supabase_nonce']) && wp_verify_nonce($_POST['tureserva_supabase_nonce'], 'tureserva_supabase_save')) {
-        update_option('tureserva_supabase_url', sanitize_text_field($_POST['tureserva_supabase_url']));
-        update_option('tureserva_supabase_key', sanitize_text_field($_POST['tureserva_supabase_key']));
-        echo '<div class="updated"><p><strong>✅ Configuración guardada correctamente.</strong></p></div>';
-    }
-
     $url = get_option('tureserva_supabase_url');
     $key = get_option('tureserva_supabase_key');
     ?>
-    <form method="post">
-        <?php wp_nonce_field('tureserva_supabase_save', 'tureserva_supabase_nonce'); ?>
+    <form id="tureserva-supabase-form" method="post" style="margin-top:20px;">
         <table class="form-table">
             <tr>
                 <th><label for="tureserva_supabase_url">Supabase URL</label></th>
-                <td><input type="text" name="tureserva_supabase_url" value="<?php echo esc_attr($url); ?>" class="regular-text" placeholder="https://xyzcompany.supabase.co" required></td>
+                <td><input type="text" id="tureserva_supabase_url" name="tureserva_supabase_url" value="<?php echo esc_attr($url); ?>" class="regular-text" placeholder="https://xyzcompany.supabase.co" required></td>
             </tr>
             <tr>
                 <th><label for="tureserva_supabase_key">Supabase API Key</label></th>
-                <td><input type="password" name="tureserva_supabase_key" value="<?php echo esc_attr($key); ?>" class="regular-text" required></td>
+                <td><input type="password" id="tureserva_supabase_key" name="tureserva_supabase_key" value="<?php echo esc_attr($key); ?>" class="regular-text" required></td>
             </tr>
         </table>
-        <p><button type="submit" class="button button-primary">💾 Guardar configuración</button></p>
+        <p>
+            <button type="button" id="tureserva-guardar-supabase" class="button button-primary">💾 Guardar configuración</button>
+            <button type="button" id="tureserva-probar-conexion" class="button button-secondary">🔗 Probar conexión</button>
+        </p>
+        <div id="tureserva-supabase-status" style="margin-top:10px;color:#555;"></div>
     </form>
     <?php
 }
@@ -186,5 +181,76 @@ add_action('wp_ajax_tureserva_load_supabase_payments', function() {
         wp_send_json_success($body);
     } else {
         wp_send_json_error('Error HTTP ' . $code . ' desde Supabase.');
+    }
+});
+
+// =======================================================
+// 🧩 AJAX: Probar conexión con Supabase
+// =======================================================
+add_action('wp_ajax_tureserva_test_supabase_connection', function() {
+    if (!current_user_can('manage_options')) {
+        wp_send_json_error('Sin permisos suficientes.');
+    }
+
+    $url = get_option('tureserva_supabase_url');
+    $key = get_option('tureserva_supabase_key');
+
+    if (empty($url) || empty($key)) {
+        wp_send_json_error('Faltan credenciales de Supabase.');
+    }
+
+    $response = wp_remote_get("$url/rest/v1", [
+        'headers' => [
+            'apikey' => $key,
+            'Authorization' => "Bearer $key"
+        ],
+        'timeout' => 10
+    ]);
+
+    if (is_wp_error($response)) {
+        wp_send_json_error('Error de conexión: ' . $response->get_error_message());
+    }
+
+    $code = wp_remote_retrieve_response_code($response);
+    if ($code >= 200 && $code < 300) {
+        wp_send_json_success('Conexión exitosa con Supabase ✅');
+    } else {
+        wp_send_json_error('Supabase respondió con código HTTP ' . $code);
+    }
+});
+
+// =======================================================
+// 💾 AJAX: Guardar configuración Supabase
+// =======================================================
+add_action('wp_ajax_tureserva_save_supabase_settings', function() {
+    if (!current_user_can('manage_options')) {
+        wp_send_json_error('Sin permisos suficientes.');
+    }
+
+    $url = isset($_POST['url']) ? esc_url_raw($_POST['url']) : '';
+    $key = isset($_POST['key']) ? sanitize_text_field($_POST['key']) : '';
+
+    if (empty($url) || empty($key)) {
+        wp_send_json_error('Campos incompletos.');
+    }
+
+    update_option('tureserva_supabase_url', $url);
+    update_option('tureserva_supabase_key', $key);
+
+    wp_send_json_success('Configuración guardada correctamente.');
+});
+
+// =======================================================
+// 📜 Encolar JS solo en el panel Supabase
+// =======================================================
+add_action('admin_enqueue_scripts', function($hook) {
+    if (strpos($hook, 'tureserva_page_tureserva-supabase-dashboard') !== false) {
+        wp_enqueue_script(
+            'tureserva-panel-supabase',
+            TURESERVA_URL . 'admin/assets/js/panel-supabase.js',
+            ['jquery'],
+            TURESERVA_VERSION,
+            true
+        );
     }
 });
