@@ -122,3 +122,4 @@ function tureserva_vista_calendario() {
     </div>
     <?php
 }
+

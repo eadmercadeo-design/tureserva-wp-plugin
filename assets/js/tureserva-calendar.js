@@ -7,46 +7,61 @@ document.addEventListener('DOMContentLoaded', function () {
     const estadoInput = document.getElementById('tureserva_estado');
     const filtrarBtn = document.getElementById('tureserva-filtrar');
 
-    let calendar = new FullCalendar.Calendar(calendarEl, {
+    const calendar = new FullCalendar.Calendar(calendarEl, {
         initialView: 'dayGridMonth',
-        height: 'auto',
+        height: 700,
         locale: 'es',
         firstDay: 1,
         headerToolbar: {
             left: 'prev,next today',
             center: 'title',
-            right: 'dayGridMonth,dayGridYear'
+            right: 'dayGridMonth,timeGridWeek,listWeek'
         },
-        eventDisplay: 'block',
-        eventSources: [
-            {
-                url: tureservaCalendar.ajax_url,
-                method: 'GET',
-                extraParams: function () {
-                    return {
-                        action: 'tureserva_get_calendar',
-                        year: yearInput.value,
-                        alojamiento: alojInput.value,
-                        estado: estadoInput.value
-                    };
-                },
-                failure: function () {
-                    alert('Error al cargar los eventos.');
-                }
-            }
-        ],
+        events: function (fetchInfo, successCallback, failureCallback) {
+            const params = new URLSearchParams({
+                action: 'tureserva_get_calendar',
+                security: tureservaCalendar.nonce,
+                year: yearInput.value,
+                alojamiento: alojInput.value,
+                estado: estadoInput.value
+            });
+
+            fetch(`${tureservaCalendar.ajax_url}?${params}`)
+                .then(res => res.json())
+                .then(response => {
+                    if (response.success) {
+                        successCallback(response.data);
+                    } else {
+                        console.error('Error en respuesta:', response);
+                        failureCallback();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error de red:', error);
+                    failureCallback();
+                });
+        },
+        eventDidMount: function (info) {
+            const e = info.event.extendedProps;
+            tippy(info.el, {
+                content: `
+                    <strong>${e.cliente || 'Sin cliente'}</strong><br>
+                    🏨 ${e.alojamiento || 'Sin alojamiento'}<br>
+                    <em>${e.estado || ''}</em>
+                    ${e.motivo ? '<br><small>' + e.motivo + '</small>' : ''}
+                `,
+                allowHTML: true,
+                placement: 'top',
+                theme: 'light-border'
+            });
+        },
         eventClick: function (info) {
-            let e = info.event.extendedProps;
-            let msg = e.tipo === 'bloqueo'
-                ? `🛑 ${e.alojamiento}\nMotivo: ${e.motivo}`
-                : `🏨 ${e.alojamiento}\nCliente: ${e.cliente}\nEstado: ${e.estado}`;
-            alert(msg);
+            const link = info.event.extendedProps.link;
+            if (link) window.open(link, '_blank');
         }
     });
 
     calendar.render();
 
-    filtrarBtn.addEventListener('click', function () {
-        calendar.refetchEvents();
-    });
+    filtrarBtn.addEventListener('click', () => calendar.refetchEvents());
 });

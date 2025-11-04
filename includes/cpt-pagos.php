@@ -3,90 +3,115 @@
  * ==========================================================
  * CPT: Pagos — TuReserva
  * ==========================================================
- * Cada registro representa un pago individual (manual o online).
+ * Cada registro representa un pago individual (manual o online),
+ * asociado a una reserva existente.
  * ==========================================================
  */
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
+// ==========================================================
+// 🔧 REGISTRO DEL CUSTOM POST TYPE "tureserva_pagos"
+// ==========================================================
 function tureserva_register_cpt_pagos() {
+
     $labels = array(
-        'name'               => 'Pagos',
-        'singular_name'      => 'Pago',
-        'menu_name'          => 'Historia de pagos',
-        'name_admin_bar'     => 'Pago',
-        'add_new'            => 'Añadir nuevo pago',
-        'add_new_item'       => 'Registrar nuevo pago',
-        'edit_item'          => 'Editar pago',
-        'new_item'           => 'Nuevo pago',
-        'view_item'          => 'Ver pago',
-        'search_items'       => 'Buscar pagos',
-        'not_found'          => 'No se encontraron pagos',
-        'not_found_in_trash' => 'No hay pagos en la papelera',
-        'all_items'          => 'Todos los pagos',
+        'name'                  => __( 'Pagos', 'tureserva' ),
+        'singular_name'         => __( 'Pago', 'tureserva' ),
+        'menu_name'             => __( 'Historial de pagos', 'tureserva' ),
+        'name_admin_bar'        => __( 'Pago', 'tureserva' ),
+        'add_new'               => __( 'Añadir nuevo', 'tureserva' ),
+        'add_new_item'          => __( 'Registrar nuevo pago', 'tureserva' ),
+        'edit_item'             => __( 'Editar pago', 'tureserva' ),
+        'new_item'              => __( 'Nuevo pago', 'tureserva' ),
+        'view_item'             => __( 'Ver pago', 'tureserva' ),
+        'search_items'          => __( 'Buscar pagos', 'tureserva' ),
+        'not_found'             => __( 'No se encontraron pagos.', 'tureserva' ),
+        'not_found_in_trash'    => __( 'No hay pagos en la papelera.', 'tureserva' ),
+        'all_items'             => __( 'Todos los pagos', 'tureserva' ),
     );
 
     $args = array(
         'labels'             => $labels,
         'public'             => false,
         'show_ui'            => true,
-        'show_in_menu'       => 'edit.php?post_type=tureserva_reservas',
-        'menu_icon'          => 'dashicons-tickets-alt',
+        'show_in_menu'       => 'edit.php?post_type=tureserva_reservas', // Bajo "Reservas"
+        'menu_icon'          => 'dashicons-money-alt',
         'supports'           => array( 'title', 'custom-fields' ),
         'capability_type'    => 'post',
+        'has_archive'        => false,
         'rewrite'            => false,
+        'menu_position'      => 30,
     );
 
     register_post_type( 'tureserva_pagos', $args );
 }
 add_action( 'init', 'tureserva_register_cpt_pagos' );
-// =======================================================
-// 💳 COLUMNAS PERSONALIZADAS EN LISTA ADMIN
-// =======================================================
+
+
+// ==========================================================
+// 💳 COLUMNAS PERSONALIZADAS EN LA LISTA ADMIN
+// ==========================================================
 add_filter( 'manage_tureserva_pagos_posts_columns', 'tureserva_pagos_columns' );
 function tureserva_pagos_columns( $columns ) {
     return array(
         'cb'             => '<input type="checkbox" />',
-        'title'          => 'Identidad',
-        'cliente'        => 'Cliente',
-        'estado'         => 'Estado',
-        'cantidad'       => 'Cantidad',
-        'reserva'        => 'Reserva',
-        'pasarela'       => 'Pasarela',
-        'transaccion'    => 'ID de transacción',
-        'date'           => 'Fecha'
+        'title'          => __( 'Identidad', 'tureserva' ),
+        'cliente'        => __( 'Cliente', 'tureserva' ),
+        'estado'         => __( 'Estado', 'tureserva' ),
+        'cantidad'       => __( 'Cantidad', 'tureserva' ),
+        'reserva'        => __( 'Reserva', 'tureserva' ),
+        'pasarela'       => __( 'Pasarela', 'tureserva' ),
+        'transaccion'    => __( 'ID de transacción', 'tureserva' ),
+        'date'           => __( 'Fecha', 'tureserva' ),
     );
 }
 
+
+// ==========================================================
+// 🧾 RENDERIZAR VALORES DE CADA COLUMNA
+// ==========================================================
 add_action( 'manage_tureserva_pagos_posts_custom_column', 'tureserva_render_pagos_columns', 10, 2 );
 function tureserva_render_pagos_columns( $column, $post_id ) {
+
     switch ( $column ) {
+
         case 'cliente':
-            echo esc_html( get_post_meta( $post_id, '_tureserva_cliente_nombre', true ) ?: '—' );
+            $nombre = get_post_meta( $post_id, '_tureserva_cliente_nombre', true );
+            $email  = get_post_meta( $post_id, '_tureserva_cliente_email', true );
+            echo $nombre
+                ? esc_html( $nombre ) . ( $email ? "<br><a href='mailto:$email' style='color:#777;'>$email</a>" : '' )
+                : '—';
             break;
 
         case 'estado':
             $estado = get_post_meta( $post_id, '_tureserva_pago_estado', true );
-            $color = match ( $estado ) {
-                'pagado' => 'green',
-                'pendiente' => 'orange',
-                'fallido' => 'red',
+            $color = match ( strtolower($estado) ) {
+                'completado', 'pagado' => '#22b14c',
+                'pendiente' => '#f0ad4e',
+                'fallido' => '#d9534f',
                 default => '#777'
             };
-            echo '<span style="color:' . $color . '; font-weight:600;">' . ucfirst( $estado ?: '—' ) . '</span>';
+            echo "<span style='font-weight:600; color:{$color}; text-transform:capitalize;'>{$estado}</span>";
             break;
 
         case 'cantidad':
-            echo esc_html( number_format( get_post_meta( $post_id, '_tureserva_pago_monto', true ), 2 ) . ' ' . strtoupper( get_post_meta( $post_id, '_tureserva_pago_moneda', true ) ?: 'USD' ) );
+            $monto  = floatval( get_post_meta( $post_id, '_tureserva_pago_monto', true ) );
+            $moneda = strtoupper( get_post_meta( $post_id, '_tureserva_pago_moneda', true ) ?: 'USD' );
+            echo $monto ? esc_html( number_format( $monto, 2 ) . " $moneda" ) : '—';
             break;
 
         case 'reserva':
             $reserva_id = get_post_meta( $post_id, '_tureserva_reserva_id', true );
-            echo $reserva_id ? '<a href="' . get_edit_post_link( $reserva_id ) . '">#' . $reserva_id . '</a>' : '—';
+            if ( $reserva_id && get_post_status( $reserva_id ) ) {
+                echo '<a href="' . esc_url( get_edit_post_link( $reserva_id ) ) . '">#' . intval( $reserva_id ) . '</a>';
+            } else {
+                echo '—';
+            }
             break;
 
         case 'pasarela':
-            echo esc_html( get_post_meta( $post_id, '_tureserva_pasarela', true ) ?: '—' );
+            echo esc_html( get_post_meta( $post_id, '_tureserva_pasarela', true ) ?: 'Manual' );
             break;
 
         case 'transaccion':
@@ -94,3 +119,38 @@ function tureserva_render_pagos_columns( $column, $post_id ) {
             break;
     }
 }
+
+
+// ==========================================================
+// 🔍 FILTRO POR ESTADO EN LA LISTA ADMIN
+// ==========================================================
+add_action( 'restrict_manage_posts', 'tureserva_filtro_estado_pagos' );
+function tureserva_filtro_estado_pagos() {
+    global $typenow;
+    if ( $typenow !== 'tureserva_pagos' ) return;
+
+    $estado_actual = $_GET['estado_pago'] ?? '';
+    $estados = array(
+        ''            => __( 'Todos los estados', 'tureserva' ),
+        'completado'  => __( 'Completado', 'tureserva' ),
+        'pendiente'   => __( 'Pendiente', 'tureserva' ),
+        'fallido'     => __( 'Fallido', 'tureserva' ),
+    );
+
+    echo '<select name="estado_pago">';
+    foreach ( $estados as $valor => $etiqueta ) {
+        printf( '<option value="%s"%s>%s</option>', esc_attr( $valor ), selected( $estado_actual, $valor, false ), esc_html( $etiqueta ) );
+    }
+    echo '</select>';
+}
+
+add_filter( 'parse_query', 'tureserva_filtrar_estado_pagos_query' );
+function tureserva_filtrar_estado_pagos_query( $query ) {
+    global $pagenow, $typenow;
+
+    if ( $typenow === 'tureserva_pagos' && $pagenow === 'edit.php' && !empty( $_GET['estado_pago'] ) ) {
+        $query->query_vars['meta_key']   = '_tureserva_pago_estado';
+        $query->query_vars['meta_value'] = sanitize_text_field( $_GET['estado_pago'] );
+    }
+}
+

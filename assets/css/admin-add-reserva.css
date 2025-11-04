@@ -1,0 +1,55 @@
+/* ==========================================================
+   🎨 Estilos — Añadir nueva reserva (TuReserva)
+   ========================================================== */
+
+.tureserva-add-reserva {
+    max-width: 860px;
+    background: #fff;
+    padding: 35px 40px;
+    border: 1px solid #dcdcdc;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.tureserva-add-reserva .tureserva-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 24px 30px;
+    align-items: end;
+}
+
+.tureserva-add-reserva label {
+    font-weight: 600;
+    display: block;
+    margin-bottom: 6px;
+    color: #2c3338;
+}
+
+.tureserva-add-reserva input[type="date"],
+.tureserva-add-reserva select {
+    width: 100%;
+    padding: 7px 9px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 14px;
+    background: #fff;
+    color: #2c3338;
+}
+
+.tureserva-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    padding-top: 10px;
+}
+
+.tureserva-actions .button-primary {
+    background-color: #2271b1;
+    border-color: #135e96;
+    transition: all 0.25s ease;
+}
+
+.tureserva-actions .button-primary:hover {
+    background-color: #135e96;
+    border-color: #0b4d7a;
+}

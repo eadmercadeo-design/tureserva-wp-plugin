@@ -38,24 +38,31 @@ function tureserva_admin_menu_reservas() {
         'edit.php?post_type=reserva'
     );
 
-    // Añadir nueva
-    add_submenu_page(
-        'edit.php?post_type=reserva',
-        __('Añadir nueva reserva', 'tureserva'),
-        __('Añadir nueva reserva', 'tureserva'),
-        'manage_options',
-        'post-new.php?post_type=reserva'
-    );
+    // Añadir nueva (pantalla personalizada mejorada)
+add_submenu_page(
+    'edit.php?post_type=reserva',
+    __('Añadir nueva reserva', 'tureserva'),
+    __('Añadir nueva', 'tureserva'),
+    'manage_options',
+    'tureserva-add-reserva',
+    function() {
+        require_once TURESERVA_PATH . 'admin/reservas/add-new.php';
+    }
+);
 
-    // Historial de pagos
-    add_submenu_page(
-        'edit.php?post_type=reserva',
-        __('Historial de pagos', 'tureserva'),
-        __('Historial de pagos', 'tureserva'),
-        'manage_options',
-        'tureserva-historial-pagos',
-        'tureserva_historial_pagos_page'
-    );
+  // =======================================================
+// 💳 Historial de pagos
+// =======================================================
+require_once TURESERVA_PATH . 'admin/pages/historial-pagos.php';
+
+add_submenu_page(
+    'edit.php?post_type=reserva',
+    __('Historial de pagos', 'tureserva'),
+    __('Historial de pagos', 'tureserva'),
+    'manage_options',
+    'tureserva-historial-pagos',
+    'tureserva_historial_pagos_page_render'
+);
 
     // Calendario
     add_submenu_page(

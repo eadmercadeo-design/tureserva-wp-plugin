@@ -1,11 +1,12 @@
 <?php
 /**
  * ==========================================================
- * CPT: Reservas — TuReserva (versión unificada)
+ * CPT: Reservas — TuReserva (versión mejorada)
  * ==========================================================
- * - Se integra con el menú principal del plugin (sin duplicados).
- * - Compatible con Gutenberg y la REST API.
- * - Incluye columnas personalizadas con datos clave.
+ * - Integración directa con el menú del plugin (sin duplicados)
+ * - Gutenberg desactivado (usa pantalla personalizada)
+ * - Columnas personalizadas con datos clave
+ * - Redirección de “Añadir nueva” hacia interfaz AJAX
  * ==========================================================
  */
 
@@ -34,17 +35,16 @@ function tureserva_register_cpt_reservas() {
 
     $args = array(
         'labels'                => $labels,
-        'public'                => true,
+        'public'                => false,
         'show_ui'               => true,
-        // 👇 Enlace directo al menú principal del plugin
-        'show_in_menu'          => 'edit.php?post_type=reserva', 
+        'show_in_menu'          => false, // Se añade mediante menú personalizado
         'menu_icon'             => 'dashicons-calendar-alt',
-        'supports'              => array( 'title', 'editor', 'custom-fields' ),
-        'has_archive'           => true,
-        'show_in_rest'          => true,
-        'rewrite'               => array( 'slug' => 'reservas' ),
+        'supports'              => array( 'title' ), // solo título
+        'has_archive'           => false,
+        'show_in_rest'          => false, // 🚫 desactiva Gutenberg
+        'rewrite'               => false,
         'capability_type'       => 'post',
-        'publicly_queryable'    => true,
+        'publicly_queryable'    => false,
     );
 
     register_post_type( 'reserva', $args );
@@ -52,7 +52,18 @@ function tureserva_register_cpt_reservas() {
 add_action( 'init', 'tureserva_register_cpt_reservas' );
 
 // =======================================================
-// 🧾 PERSONALIZACIÓN DE COLUMNAS EN EL ADMIN
+// 🚀 REDIRECCIÓN: “Añadir nueva” → Interfaz personalizada
+// =======================================================
+add_action('load-post-new.php', function() {
+    global $typenow;
+    if ($typenow === 'reserva') {
+        wp_redirect(admin_url('edit.php?post_type=reserva&page=tureserva-add-reserva'));
+        exit;
+    }
+});
+
+// =======================================================
+// 🧾 COLUMNAS PERSONALIZADAS EN EL ADMIN
 // =======================================================
 add_filter( 'manage_edit-reserva_columns', 'tureserva_reservas_columns' );
 function tureserva_reservas_columns( $columns ) {
@@ -69,6 +80,9 @@ function tureserva_reservas_columns( $columns ) {
     );
 }
 
+// =======================================================
+// 🧮 RENDERIZADO DE COLUMNAS
+// =======================================================
 add_action( 'manage_reserva_posts_custom_column', 'tureserva_render_reservas_columns', 10, 2 );
 function tureserva_render_reservas_columns( $column, $post_id ) {
 
@@ -116,4 +130,3 @@ function tureserva_render_reservas_columns( $column, $post_id ) {
             break;
     }
 }
-

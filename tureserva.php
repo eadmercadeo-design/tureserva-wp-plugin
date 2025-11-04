@@ -21,6 +21,22 @@ define( 'TURESERVA_URL', plugin_dir_url( __FILE__ ) );
 define( 'TURESERVA_MAIN_FILE', __FILE__ );
 
 // =======================================================
+// 🎨 Encolar CSS global del administrador TuReserva
+// =======================================================
+add_action('admin_enqueue_scripts', function () {
+    // Solo carga en pantallas del plugin TuReserva
+    $screen = get_current_screen();
+    if (isset($screen->id) && strpos($screen->id, 'tureserva') !== false) {
+        wp_enqueue_style(
+            'tureserva-admin-styles',
+            TURESERVA_URL . 'assets/css/admin-add-reserva.css?v=6',
+            [],
+            null
+        );
+    }
+});
+
+// =======================================================
 // 🚀 FUNCIÓN PRINCIPAL DE INICIALIZACIÓN
 // =======================================================
 function tureserva_init() {
@@ -34,6 +50,11 @@ function tureserva_init() {
     require_once TURESERVA_PATH . 'includes/cpt-reservas.php';
     require_once TURESERVA_PATH . 'includes/cpt-temporadas.php';
     require_once TURESERVA_PATH . 'includes/cpt-pagos.php'; // 💳
+    require_once TURESERVA_PATH . 'admin/metaboxes/metabox-pago-detalles.php';
+    require_once TURESERVA_PATH . 'admin/metaboxes/metabox-pago-detalles.php';
+    require_once TURESERVA_PATH . 'admin/metaboxes/metabox-pago-lateral.php';
+
+
 
     // -------------------------------------------------------
     // 🏷️ TAXONOMÍAS
