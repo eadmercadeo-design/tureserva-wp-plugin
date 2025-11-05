@@ -34,14 +34,17 @@ function tureserva_register_cpt_pagos() {
     $args = array(
         'labels'             => $labels,
         'public'             => false,
-        'show_ui'            => true,
-        'show_in_menu'       => 'edit.php?post_type=tureserva_reservas', // Bajo "Reservas"
-        'menu_icon'          => 'dashicons-money-alt',
-        'supports'           => array( 'title', 'custom-fields' ),
-        'capability_type'    => 'post',
-        'has_archive'        => false,
-        'rewrite'            => false,
-        'menu_position'      => 30,
+'show_ui'            => true,
+'show_in_menu'       => 'edit.php?post_type=reserva', // Se agrupa bajo Reservas
+'supports'           => array( 'title', 'custom-fields' ),
+'capability_type'    => 'post',
+'map_meta_cap'       => true,
+'hierarchical'       => false,
+'has_archive'        => false,
+'rewrite'            => false,
+'menu_position'      => 30,
+'can_export'         => true,
+'delete_with_user'   => false,
     );
 
     register_post_type( 'tureserva_pagos', $args );

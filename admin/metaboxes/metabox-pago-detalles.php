@@ -73,33 +73,57 @@ function tureserva_render_metabox_pago_detalles($post) {
         <input type="text" name="_tureserva_pago_id" value="<?php echo esc_attr($codigo_pago); ?>" readonly />
     </td>
 </tr>
-
-
-        <tr>
-    <th><label for="tureserva_pago_monto"><?php _e('Cantidad', 'tureserva'); ?></label></th>
+       <tr>
+    <th><label><?php _e('Cantidad', 'tureserva'); ?></label></th>
     <td>
-        <input
-            type="number"
-            id="tureserva_pago_monto"
+        <input 
+            type="text"
             name="_tureserva_pago_monto"
-            step="0.01"
-            min="0"
-            value="<?php echo esc_attr($meta['_tureserva_pago_monto'][0] ?? '0'); ?>"
+            id="tureserva_pago_monto"
+            value="<?php echo esc_attr($meta['_tureserva_pago_monto'][0] ?? ''); ?>"
             class="small-text"
-            style="width:150px;"
-            placeholder="0.00"
-        >
-        <p class="description"><?php _e('Monto total del pago (usa decimales si aplica).', 'tureserva'); ?></p>
+            style="width:150px;text-align:right;"
+            placeholder="0 o 0.00"
+        />
+        <p class="description"><?php _e('Monto total del pago (puede incluir o no decimales, use punto como separador).', 'tureserva'); ?></p>
+
         <script>
-            document.addEventListener('DOMContentLoaded', () => {
-                const campo = document.getElementById('tureserva_pago_monto');
-                if (campo) campo.removeAttribute('readonly');
-                if (campo) campo.removeAttribute('disabled');
+        document.addEventListener('DOMContentLoaded', () => {
+            const campo = document.getElementById('tureserva_pago_monto');
+            if (!campo) return;
+
+            // ✅ Bloquea letras, comas y notación científica
+            campo.addEventListener('keydown', (e) => {
+                const invalid = ['e', 'E', '+', '-', ',', ' '];
+                if (invalid.includes(e.key)) e.preventDefault();
             });
+
+            // ✅ Limpieza mínima al salir del campo
+            campo.addEventListener('blur', () => {
+                let valor = campo.value.trim();
+
+                // Si está vacío → deja vacío
+                if (valor === '') return;
+
+                // Reemplaza comas por punto
+                valor = valor.replace(',', '.');
+
+                // Permite enteros o decimales válidos
+                if (!/^\d+(\.\d{1,2})?$/.test(valor)) {
+                    alert('Por favor ingrese un valor válido (solo números y punto decimal).');
+                    campo.value = '';
+                    campo.focus();
+                    return;
+                }
+
+                // Quita ceros innecesarios (ej: 100.00 → 100 o 100.5 → 100.5)
+                const numero = parseFloat(valor);
+                campo.value = numero % 1 === 0 ? numero.toFixed(0) : numero.toFixed(2);
+            });
+        });
         </script>
     </td>
 </tr>
-
         <tr><th><label>Tipo de pago</label></th>
             <td><input type="text" name="_tureserva_tipo_pago" value="<?php echo esc_attr($meta['_tureserva_tipo_pago'][0] ?? ''); ?>" /></td>
         </tr>
