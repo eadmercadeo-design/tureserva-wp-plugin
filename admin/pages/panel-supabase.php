@@ -33,10 +33,10 @@ function tureserva_render_supabase_dashboard_page() {
     ?>
     <div class="wrap">
        <h2 class="nav-tab-wrapper">
-    <a href="?page=tureserva-cloud-sync&tab=dashboard"
+    <a href="edit.php?post_type=reserva&page=tureserva-cloud-sync&tab=dashboard"
        class="nav-tab <?php echo $tab === 'dashboard' ? 'nav-tab-active' : ''; ?>">📊 Dashboard</a>
 
-    <a href="?page=tureserva-cloud-sync&tab=settings"
+    <a href="edit.php?post_type=reserva&page=tureserva-cloud-sync&tab=settings"
        class="nav-tab <?php echo $tab === 'settings' ? 'nav-tab-active' : ''; ?>">⚙️ Configuración</a>
 </h2>
 
@@ -272,10 +272,11 @@ add_action('wp_ajax_tureserva_save_supabase_settings', function() {
 });
 
 // =======================================================
-// 📜 Encolar JS solo en el panel Supabase
+// 📜 Encolar JS en la página correcta — detección directa por slug
 // =======================================================
-add_action('admin_enqueue_scripts', function($hook) {
-    if (strpos($hook, 'tureserva_page_tureserva-cloud-sync') !== false) {
+add_action('admin_enqueue_scripts', function() {
+    // ✅ Carga solo si estamos en la página del panel de Supabase
+    if (isset($_GET['page']) && $_GET['page'] === 'tureserva-cloud-sync') {
         wp_enqueue_script(
             'tureserva-panel-supabase',
             TURESERVA_URL . 'admin/assets/js/panel-supabase.js',

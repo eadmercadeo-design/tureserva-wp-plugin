@@ -82,7 +82,6 @@ function tureserva_init() {
     require_once TURESERVA_PATH . 'includes/menu-alojamiento.php';
     require_once TURESERVA_PATH . 'includes/menu-reservas.php';     // ✅ Menú unificado
     require_once TURESERVA_PATH . 'includes/menu-comodidades.php';
-    require_once TURESERVA_PATH . 'includes/menu-sync.php';         // 🔄 Sincronización
     require_once TURESERVA_PATH . 'includes/menu-notificaciones.php';
     require_once TURESERVA_PATH . 'includes/menu-calendario.php';
     require_once TURESERVA_PATH . 'includes/menu-reportes.php';
