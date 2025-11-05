@@ -75,37 +75,30 @@ function tureserva_render_metabox_pago_detalles($post) {
 </tr>
 
 
-        <tr><th><label>Modo de pasarela</label></th>
-            <td>
-                <select name="_tureserva_modo_pasarela">
-                    <option value="sandbox" <?php selected(($meta['_tureserva_modo_pasarela'][0] ?? ''), 'sandbox'); ?>>Sandbox</option>
-                    <option value="live" <?php selected(($meta['_tureserva_modo_pasarela'][0] ?? ''), 'live'); ?>>Producción</option>
-                </select>
-            </td>
-        </tr>
-
-        <tr><th><label>Cantidad</label></th>
-            <td><input type="number" step="0.01" name="_tureserva_pago_monto" value="<?php echo esc_attr($meta['_tureserva_pago_monto'][0] ?? '0'); ?>" /></td>
-        </tr>
-
-        <tr><th><label>Moneda</label></th>
-            <td>
-                <select name="_tureserva_pago_moneda">
-                    <?php
-                    $moneda = $meta['_tureserva_pago_moneda'][0] ?? 'USD';
-                    $opciones = [
-                        'USD' => 'Dólar estadounidense ($)',
-                        'EUR' => 'Euro (€)',
-                        'COP' => 'Peso de Colombia ($)',
-                        'PAB' => 'Balboa (B/.)'
-                    ];
-                    foreach ($opciones as $code => $label) {
-                        printf('<option value="%s"%s>%s</option>', $code, selected($code, $moneda, false), $label);
-                    }
-                    ?>
-                </select>
-            </td>
-        </tr>
+        <tr>
+    <th><label for="tureserva_pago_monto"><?php _e('Cantidad', 'tureserva'); ?></label></th>
+    <td>
+        <input
+            type="number"
+            id="tureserva_pago_monto"
+            name="_tureserva_pago_monto"
+            step="0.01"
+            min="0"
+            value="<?php echo esc_attr($meta['_tureserva_pago_monto'][0] ?? '0'); ?>"
+            class="small-text"
+            style="width:150px;"
+            placeholder="0.00"
+        >
+        <p class="description"><?php _e('Monto total del pago (usa decimales si aplica).', 'tureserva'); ?></p>
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                const campo = document.getElementById('tureserva_pago_monto');
+                if (campo) campo.removeAttribute('readonly');
+                if (campo) campo.removeAttribute('disabled');
+            });
+        </script>
+    </td>
+</tr>
 
         <tr><th><label>Tipo de pago</label></th>
             <td><input type="text" name="_tureserva_tipo_pago" value="<?php echo esc_attr($meta['_tureserva_tipo_pago'][0] ?? ''); ?>" /></td>
