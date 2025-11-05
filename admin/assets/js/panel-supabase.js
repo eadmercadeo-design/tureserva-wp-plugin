@@ -87,4 +87,46 @@ jQuery(document).ready(function($){
         });
     });
 
+    // =======================================================
+    // 💳 SINCRONIZAR PAGOS COMPLETADOS
+    // =======================================================
+    $('#tureserva-sync-pagos-manual').on('click', function(e){
+        e.preventDefault();
+        const $btn = $(this);
+        $btn.text('Sincronizando...').prop('disabled', true);
+
+        $.post(ajaxurl, { action: 'tureserva_sync_pagos_manual_panel' }, function(response){
+            if(response.success){
+                showNotice('success', '✅ ' + response.data);
+            } else {
+                showNotice('error', '❌ ' + (response.data || 'No se pudieron sincronizar los pagos.'));
+            }
+        }).fail(function(){
+            showNotice('error', '⚠️ Error de conexión con el servidor.');
+        }).always(function(){
+            $btn.text('💳 Sincronizar pagos completados').prop('disabled', false);
+        });
+    });
+
+    // =======================================================
+    // 📥 DESCARGAR PAGOS DESDE SUPABASE
+    // =======================================================
+    $('#tureserva-sync-pagos-from-supabase').on('click', function(e){
+        e.preventDefault();
+        const $btn = $(this);
+        $btn.text('Descargando...').prop('disabled', true);
+
+        $.post(ajaxurl, { action: 'tureserva_sync_pagos_from_supabase', limit: 50 }, function(response){
+            if(response.success){
+                showNotice('success', '✅ ' + response.data);
+            } else {
+                showNotice('error', '❌ ' + (response.data || 'No se pudieron descargar los pagos.'));
+            }
+        }).fail(function(){
+            showNotice('error', '⚠️ Error de conexión con el servidor.');
+        }).always(function(){
+            $btn.text('📥 Descargar pagos desde Supabase').prop('disabled', false);
+        });
+    });
+
 });

@@ -37,6 +37,7 @@ class Tureserva_Payments_Table extends WP_List_Table {
             'reserva'        => __('Reserva', 'tureserva'),
             'pasarela'       => __('Pasarela', 'tureserva'),
             'transaccion_id' => __('ID de transacción', 'tureserva'),
+            'sync_status'    => __('Sincronización', 'tureserva'),
             'fecha'          => __('Fecha', 'tureserva'),
         ];
     }
@@ -73,6 +74,10 @@ class Tureserva_Payments_Table extends WP_List_Table {
             $transaccion = esc_html($meta['_tureserva_transaccion_id'][0] ?? '—');
             $fecha = get_the_date('Y-m-d', $pago->ID);
 
+            // Estado de sincronización
+            $sync_status = get_post_meta($pago->ID, '_tureserva_sync_status', true) ?: 'pendiente';
+            $sync_fecha = get_post_meta($pago->ID, '_tureserva_sync_fecha', true);
+
             $items[] = [
                 'identidad' => $id_pago,
                 'cliente' => $cliente,
@@ -81,6 +86,8 @@ class Tureserva_Payments_Table extends WP_List_Table {
                 'reserva' => $reserva_id ? ('#' . $reserva_id) : '—',
                 'pasarela' => $pasarela,
                 'transaccion_id' => $transaccion,
+                'sync_status' => $sync_status,
+                'sync_fecha' => $sync_fecha,
                 'fecha' => $fecha,
                 'post_id' => $pago->ID // 👈 Guardamos el ID real del post
             ];
@@ -96,6 +103,8 @@ class Tureserva_Payments_Table extends WP_List_Table {
         switch ($column_name) {
             case 'identidad':
                 return $this->column_identidad($item);
+            case 'sync_status':
+                return $this->column_sync_status($item);
             default:
                 return $item[$column_name] ?? '';
         }
@@ -124,6 +133,37 @@ class Tureserva_Payments_Table extends WP_List_Table {
         }
 
         return sprintf('%s %s', esc_html($item['identidad']), $this->row_actions($actions));
+    }
+
+    // ==========================================================
+    // 🔹 Columna personalizada: Estado de sincronización
+    // ==========================================================
+    public function column_sync_status($item) {
+        $status = $item['sync_status'] ?? 'pendiente';
+        $sync_fecha = $item['sync_fecha'] ?? '';
+
+        $colors = [
+            'sincronizado' => '#22b14c',
+            'error' => '#d9534f',
+            'pendiente' => '#f0ad4e'
+        ];
+
+        $labels = [
+            'sincronizado' => '✅ Sincronizado',
+            'error' => '❌ Error',
+            'pendiente' => '⏳ Pendiente'
+        ];
+
+        $color = $colors[$status] ?? '#777';
+        $label = $labels[$status] ?? ucfirst($status);
+
+        $html = "<span style='font-weight:600; color:{$color};'>{$label}</span>";
+        
+        if ($sync_fecha && $status === 'sincronizado') {
+            $html .= "<br><small style='color:#777;'>" . date_i18n('d/m/Y H:i', strtotime($sync_fecha)) . "</small>";
+        }
+
+        return $html;
     }
 } // ✅ Fin de la clase
 

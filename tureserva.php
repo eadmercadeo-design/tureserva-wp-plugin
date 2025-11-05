@@ -140,7 +140,9 @@ function tureserva_init() {
         'ical-export.php',
         'calendar-cron.php',
         'cloud-handler.php',
-        'cloud-sync.php'
+        'cloud-sync.php',
+        'tureserva-sync-pagos.php',      // Sincronización automática de pagos
+        'tureserva-sync-inverse.php'     // Sincronización inversa (descarga)
     ];
     foreach ( $sync_files as $file ) {
         require_once TURESERVA_PATH . 'includes/sync/' . $file;

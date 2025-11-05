@@ -38,11 +38,16 @@ function tureserva_render_supabase_dashboard_page() {
 
     <a href="edit.php?post_type=reserva&page=tureserva-cloud-sync&tab=settings"
        class="nav-tab <?php echo $tab === 'settings' ? 'nav-tab-active' : ''; ?>">⚙️ Configuración</a>
+
+    <a href="edit.php?post_type=reserva&page=tureserva-cloud-sync&tab=logs"
+       class="nav-tab <?php echo $tab === 'logs' ? 'nav-tab-active' : ''; ?>">📜 Logs</a>
 </h2>
 
         <?php
         if ($tab === 'settings') {
             tureserva_render_supabase_settings_tab();
+        } elseif ($tab === 'logs') {
+            tureserva_render_supabase_logs_tab();
         } else {
             tureserva_render_supabase_dashboard_tab();
         }
@@ -90,6 +95,12 @@ function tureserva_render_supabase_settings_tab() {
             </button>
             <button type="button" id="tureserva-sync-alojamientos" class="button">
                 🔁 Sincronizar alojamientos
+            </button>
+            <button type="button" id="tureserva-sync-pagos-manual" class="button button-primary">
+                💳 Sincronizar pagos completados
+            </button>
+            <button type="button" id="tureserva-sync-pagos-from-supabase" class="button">
+                📥 Descargar pagos desde Supabase
             </button>
         </p>
 
@@ -176,6 +187,83 @@ function tureserva_render_supabase_dashboard_tab() {
 }
 
 // =======================================================
+// 🧠 TAB 3: Logs de sincronización desde Supabase
+// =======================================================
+function tureserva_render_supabase_logs_tab() {
+    ?>
+    <div style="margin-top:20px;">
+        <h2>📜 Logs de Sincronización</h2>
+        <p>Registros recientes de sincronización almacenados en Supabase.</p>
+
+        <p>
+            <button id="tureserva-refresh-logs" class="button">🔄 Actualizar logs</button>
+            <span id="tureserva-logs-status" style="margin-left:10px;color:#555;"></span>
+        </p>
+
+        <table class="widefat fixed striped" id="tureserva-logs-table">
+            <thead>
+                <tr>
+                    <th><?php _e('Fecha', 'tureserva'); ?></th>
+                    <th><?php _e('Entidad', 'tureserva'); ?></th>
+                    <th><?php _e('Código', 'tureserva'); ?></th>
+                    <th><?php _e('Estado', 'tureserva'); ?></th>
+                    <th><?php _e('Detalle', 'tureserva'); ?></th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td colspan="5" style="text-align:center;">⏳ Cargando logs desde Supabase...</td></tr>
+            </tbody>
+        </table>
+
+        <script>
+        (function($){
+            const refreshBtn = $('#tureserva-refresh-logs');
+            const statusBox = $('#tureserva-logs-status');
+            const tableBody = $('#tureserva-logs-table tbody');
+
+            function loadLogs(){
+                statusBox.text('Cargando...');
+                $.post(ajaxurl, { action: 'tureserva_load_supabase_logs' }, function(response){
+                    if(response.success){
+                        const logs = response.data;
+                        let html = '';
+                        if(logs.length){
+                            logs.forEach(log => {
+                                const estadoColor = log.estado === 'éxito' ? '#22b14c' : '#d9534f';
+                                const estadoIcon = log.estado === 'éxito' ? '✅' : '❌';
+                                html += `<tr>
+                                    <td>${log.fecha || '-'}</td>
+                                    <td>${log.entidad || '-'}</td>
+                                    <td>${log.codigo || '-'}</td>
+                                    <td><span style="color:${estadoColor};font-weight:600;">${estadoIcon} ${log.estado || '-'}</span></td>
+                                    <td><small>${log.detalle || '-'}</small></td>
+                                </tr>`;
+                            });
+                        } else {
+                            html = '<tr><td colspan="5" style="text-align:center;">Sin registros recientes</td></tr>';
+                        }
+                        tableBody.html(html);
+                        statusBox.text('✅ Actualizado');
+                    } else {
+                        tableBody.html('<tr><td colspan="5" style="color:red;text-align:center;">Error: ' + response.data + '</td></tr>');
+                        statusBox.text('❌ Error al cargar');
+                    }
+                }).fail(function(){
+                    tableBody.html('<tr><td colspan="5" style="color:red;text-align:center;">Error de comunicación con el servidor.</td></tr>');
+                    statusBox.text('⚠️ Error de conexión');
+                });
+            }
+
+            refreshBtn.on('click', loadLogs);
+            loadLogs();
+            setInterval(loadLogs, 30000); // Actualizar cada 30 segundos
+        })(jQuery);
+        </script>
+    </div>
+    <?php
+}
+
+// =======================================================
 // 🔄 AJAX: Cargar pagos desde Supabase
 // =======================================================
 add_action('wp_ajax_tureserva_load_supabase_payments', function() {
@@ -184,6 +272,12 @@ add_action('wp_ajax_tureserva_load_supabase_payments', function() {
 
     if (empty($url) || empty($key)) {
         wp_send_json_error('Falta configuración de Supabase.');
+    }
+
+    // Normalizar URL
+    $url = rtrim($url, '/');
+    if (strpos($url, '/rest/v1') !== false) {
+        $url = str_replace('/rest/v1', '', $url);
     }
 
     $endpoint = trailingslashit($url) . 'rest/v1/tureserva_pagos?order=fecha.desc&limit=10';
@@ -269,6 +363,86 @@ add_action('wp_ajax_tureserva_save_supabase_settings', function() {
     update_option('tureserva_supabase_key', $key);
 
     wp_send_json_success('Configuración guardada correctamente.');
+});
+
+// =======================================================
+// 💳 AJAX: Sincronizar pagos completados manualmente
+// =======================================================
+add_action('wp_ajax_tureserva_sync_pagos_manual_panel', function() {
+    if (!current_user_can('manage_options')) {
+        wp_send_json_error('Sin permisos suficientes.');
+    }
+
+    require_once TURESERVA_PATH . 'includes/sync/tureserva-sync-pagos.php';
+
+    $pagos = get_posts([
+        'post_type'      => 'tureserva_pagos',
+        'posts_per_page' => -1,
+        'post_status'    => 'publish',
+        'meta_query'     => [
+            [
+                'key'   => '_tureserva_pago_estado',
+                'value' => 'completado',
+                'compare' => '='
+            ]
+        ]
+    ]);
+
+    $count = 0;
+    $errors = 0;
+    
+    foreach ($pagos as $pago) {
+        tureserva_sync_pago_supabase($pago->ID, $pago);
+        $sync_status = get_post_meta($pago->ID, '_tureserva_sync_status', true);
+        if ($sync_status === 'sincronizado') {
+            $count++;
+        } else {
+            $errors++;
+        }
+    }
+
+    wp_send_json_success("Sincronizados: $count exitosos, $errors con errores.");
+});
+
+// =======================================================
+// 📜 AJAX: Cargar logs desde Supabase
+// =======================================================
+add_action('wp_ajax_tureserva_load_supabase_logs', function() {
+    $url = get_option('tureserva_supabase_url');
+    $key = get_option('tureserva_supabase_key');
+
+    if (empty($url) || empty($key)) {
+        wp_send_json_error('Falta configuración de Supabase.');
+    }
+
+    // Normalizar URL
+    $url = rtrim($url, '/');
+    if (strpos($url, '/rest/v1') !== false) {
+        $url = str_replace('/rest/v1', '', $url);
+    }
+
+    $endpoint = trailingslashit($url) . 'rest/v1/tureserva_sync_log?order=fecha.desc&limit=50';
+
+    $response = wp_remote_get($endpoint, [
+        'headers' => [
+            'apikey'        => $key,
+            'Authorization' => 'Bearer ' . $key,
+        ],
+        'timeout' => 15,
+    ]);
+
+    if (is_wp_error($response)) {
+        wp_send_json_error($response->get_error_message());
+    }
+
+    $code = wp_remote_retrieve_response_code($response);
+    $body = json_decode(wp_remote_retrieve_body($response), true);
+
+    if ($code >= 200 && $code < 300 && is_array($body)) {
+        wp_send_json_success($body);
+    } else {
+        wp_send_json_error('Error HTTP ' . $code . ' desde Supabase.');
+    }
 });
 
 // =======================================================

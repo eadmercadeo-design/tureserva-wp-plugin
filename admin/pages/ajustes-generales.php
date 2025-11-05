@@ -29,16 +29,23 @@ add_action('admin_menu', function() {
 // =======================================================
 function tureserva_render_ajustes_generales_page() {
 
-    // 💾 Guardar opciones globales
-    if (isset($_POST['tureserva_ajustes_nonce']) && wp_verify_nonce($_POST['tureserva_ajustes_nonce'], 'tureserva_ajustes_action')) {
-        update_option('tureserva_pagina_busqueda', intval($_POST['pagina_busqueda']));
-        update_option('tureserva_pagina_pago', intval($_POST['pagina_pago']));
-        update_option('tureserva_checkin', sanitize_text_field($_POST['checkin']));
-        update_option('tureserva_checkout', sanitize_text_field($_POST['checkout']));
-        update_option('tureserva_divisa', sanitize_text_field($_POST['divisa']));
-        update_option('tureserva_formato_fecha', sanitize_text_field($_POST['formato_fecha']));
-        update_option('tureserva_formato_hora', sanitize_text_field($_POST['formato_hora']));
-        echo '<div class="updated notice"><p>' . __('✅ Ajustes guardados correctamente.', 'tureserva') . '</p></div>';
+    // 💾 Guardar opciones globales (General)
+    if (isset($_POST['tureserva_guardar_general']) && isset($_POST['tureserva_ajustes_nonce']) && wp_verify_nonce($_POST['tureserva_ajustes_nonce'], 'tureserva_ajustes_action')) {
+        if (isset($_POST['pagina_busqueda'])) update_option('tureserva_pagina_busqueda', intval($_POST['pagina_busqueda']));
+        if (isset($_POST['pagina_pago'])) update_option('tureserva_pagina_pago', intval($_POST['pagina_pago']));
+        if (isset($_POST['checkin'])) update_option('tureserva_checkin', sanitize_text_field($_POST['checkin']));
+        if (isset($_POST['checkout'])) update_option('tureserva_checkout', sanitize_text_field($_POST['checkout']));
+        if (isset($_POST['divisa'])) update_option('tureserva_divisa', sanitize_text_field($_POST['divisa']));
+        if (isset($_POST['formato_fecha'])) update_option('tureserva_formato_fecha', sanitize_text_field($_POST['formato_fecha']));
+        if (isset($_POST['formato_hora'])) update_option('tureserva_formato_hora', sanitize_text_field($_POST['formato_hora']));
+        echo '<div class="updated notice is-dismissible"><p>' . __('✅ Ajustes guardados correctamente.', 'tureserva') . '</p></div>';
+    }
+
+    // 💾 Guardar opciones de pagos (WooCommerce)
+    if (isset($_POST['tureserva_pago_woo_enable']) && isset($_POST['tureserva_ajustes_nonce']) && wp_verify_nonce($_POST['tureserva_ajustes_nonce'], 'tureserva_ajustes_action')) {
+        update_option('tureserva_pago_woo_enable', 1);
+    } elseif (isset($_POST['tureserva_ajustes_nonce']) && wp_verify_nonce($_POST['tureserva_ajustes_nonce'], 'tureserva_ajustes_action')) {
+        update_option('tureserva_pago_woo_enable', 0);
     }
 
     // 📄 Obtener valores actuales
@@ -150,7 +157,60 @@ function tureserva_render_ajustes_generales_page() {
                         <td><input type="text" name="formato_hora" value="<?php echo esc_attr($formato_hora); ?>" placeholder="H:i"></td>
                     </tr>
                 </table>
+
+                <p class="submit">
+                    <?php submit_button(__('Guardar cambios', 'tureserva'), 'primary', 'tureserva_guardar_general', false); ?>
+                </p>
             </div>
+
+            <!-- ======================================================= -->
+            <!-- 📧 TAB EMAILS (con subpestañas) -->
+            <!-- ======================================================= -->
+            <div id="email" class="tureserva-card tab-section" style="display:none;">
+                <style>
+                    .tureserva-subtabs { margin-bottom: 20px; border-bottom: 1px solid #ccc; }
+                    .tureserva-subtabs a {
+                        display:inline-block; padding:6px 14px; text-decoration:none;
+                        border:1px solid #ccc; border-bottom:none; margin-right:4px;
+                        background:#f1f1f1; color:#333; border-radius:4px 4px 0 0;
+                        font-weight:600;
+                    }
+                    .tureserva-subtabs a.active { background:#fff; border-bottom:1px solid #fff; }
+                    .email-subtab { display:none; }
+                </style>
+
+                <div class="tureserva-subtabs">
+                    <a href="#emails-admin" class="subtab-link active"><?php _e('Emails del admin', 'tureserva'); ?></a>
+                    <a href="#emails-cliente" class="subtab-link"><?php _e('Emails del cliente', 'tureserva'); ?></a>
+                </div>
+
+                <div id="emails-admin" class="email-subtab" style="display:block;">
+                    <?php include TURESERVA_PATH . 'admin/pages/partials/emails/admin.php'; ?>
+                </div>
+                <div id="emails-cliente" class="email-subtab">
+                    <?php include TURESERVA_PATH . 'admin/pages/partials/emails/cliente.php'; ?>
+                </div>
+            </div>
+
+            <!-- Script para subpestañas de emails -->
+            <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const emailTabs = document.querySelectorAll('#email .subtab-link');
+                const emailSections = document.querySelectorAll('#email .email-subtab');
+                if (emailTabs.length && emailSections.length) {
+                    emailTabs.forEach(tab => {
+                        tab.addEventListener('click', e => {
+                            e.preventDefault();
+                            emailTabs.forEach(t => t.classList.remove('active'));
+                            emailSections.forEach(s => s.style.display = 'none');
+                            tab.classList.add('active');
+                            const target = document.querySelector(tab.getAttribute('href'));
+                            if (target) target.style.display = 'block';
+                        });
+                    });
+                }
+            });
+            </script>
 
             <!-- ======================================================= -->
             <!-- 💳 TAB PAGOS (con subpestañas) -->

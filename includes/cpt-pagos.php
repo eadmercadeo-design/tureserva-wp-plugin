@@ -66,6 +66,7 @@ function tureserva_pagos_columns( $columns ) {
         'reserva'        => __( 'Reserva', 'tureserva' ),
         'pasarela'       => __( 'Pasarela', 'tureserva' ),
         'transaccion'    => __( 'ID de transacción', 'tureserva' ),
+        'sync_status'    => __( 'Sincronización', 'tureserva' ),
         'date'           => __( 'Fecha', 'tureserva' ),
     );
 }
@@ -119,6 +120,31 @@ function tureserva_render_pagos_columns( $column, $post_id ) {
 
         case 'transaccion':
             echo esc_html( get_post_meta( $post_id, '_tureserva_pago_id', true ) ?: '—' );
+            break;
+
+        case 'sync_status':
+            $sync_status = get_post_meta( $post_id, '_tureserva_sync_status', true ) ?: 'pendiente';
+            $sync_fecha = get_post_meta( $post_id, '_tureserva_sync_fecha', true );
+            
+            $colors = [
+                'sincronizado' => '#22b14c',
+                'error' => '#d9534f',
+                'pendiente' => '#f0ad4e'
+            ];
+            
+            $labels = [
+                'sincronizado' => '✅ Sincronizado',
+                'error' => '❌ Error',
+                'pendiente' => '⏳ Pendiente'
+            ];
+            
+            $color = $colors[$sync_status] ?? '#777';
+            $label = $labels[$sync_status] ?? ucfirst($sync_status);
+            
+            echo "<span style='font-weight:600; color:{$color};'>{$label}</span>";
+            if ($sync_fecha && $sync_status === 'sincronizado') {
+                echo "<br><small style='color:#777;'>" . date_i18n('d/m/Y H:i', strtotime($sync_fecha)) . "</small>";
+            }
             break;
     }
 }
