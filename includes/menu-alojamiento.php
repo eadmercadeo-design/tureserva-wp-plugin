@@ -12,17 +12,17 @@
  * ==========================================================
  */
 
-if ( ! defined( 'ABSPATH' ) ) exit;
+if (!defined('ABSPATH')) exit;
 
 // =======================================================
 // 📌 REGISTRO DEL MENÚ PRINCIPAL "ALOJAMIENTO"
 // =======================================================
-add_action( 'admin_menu', 'tureserva_admin_menu_alojamiento', 5 );
+add_action('admin_menu', 'tureserva_admin_menu_alojamiento', 10);
 
 function tureserva_admin_menu_alojamiento() {
 
-    // Verificar que el CPT existe
-    if ( ! post_type_exists( 'tureserva_alojamiento' ) ) {
+    // Verificar que el CPT esté registrado
+    if (!post_type_exists('tureserva_alojamiento')) {
         return;
     }
 
@@ -33,7 +33,7 @@ function tureserva_admin_menu_alojamiento() {
         __('Alojamientos', 'tureserva'),
         __('Alojamiento', 'tureserva'),
         'manage_options',
-        'edit.php?post_type=tureserva_alojamiento', // usa la pantalla del CPT
+        'edit.php?post_type=tureserva_alojamiento',
         '',
         'dashicons-building',
         5 // 📌 Antes del menú "Reservas" (posición 6)
@@ -60,7 +60,11 @@ function tureserva_admin_menu_alojamiento() {
         'manage_options',
         'post-new.php?post_type=tureserva_alojamiento'
     );
+
+    // Submenús adicionales (registrados en otros archivos)
+    // Ejemplo: menu-generar-alojamientos.php, menu-comodidades.php, etc.
 }
+
 
 // =======================================================
 // 📌 Verificar existencia del CPT antes de cargar submenús adicionales
