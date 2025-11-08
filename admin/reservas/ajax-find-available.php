@@ -17,7 +17,7 @@ function tureserva_find_available_rooms() {
 
     // 🔍 Buscar alojamientos disponibles (ejemplo básico)
     $args = [
-        'post_type' => 'alojamiento',
+        'post_type' => 'tureserva_alojamiento',
         'posts_per_page' => -1,
         'tax_query' => $type ? [['taxonomy' => 'categoria_alojamiento', 'terms' => $type]] : [],
     ];

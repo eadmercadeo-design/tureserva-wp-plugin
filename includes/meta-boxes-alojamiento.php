@@ -13,7 +13,7 @@ function tureserva_register_alojamiento_meta_boxes() {
         'tureserva_alojamiento_detalles',
         __('Detalles del Alojamiento', 'tureserva'),
         'tureserva_render_alojamiento_meta_box',
-        'alojamiento',
+        'tureserva_alojamiento',
         'normal',
         'high'
     );
@@ -296,7 +296,7 @@ function tureserva_save_alojamiento_meta($post_id) {
     $permitir = isset($_POST['tureserva_permitir_comentarios']) ? 1 : 0;
     wp_update_post(['ID' => $post_id, 'comment_status' => $permitir ? 'open' : 'closed']);
 }
-add_action('save_post_alojamiento', 'tureserva_save_alojamiento_meta');
+add_action('save_post_tureserva_alojamiento', 'tureserva_save_alojamiento_meta');
 
 
 // === Columnas personalizadas en el listado === //
@@ -309,7 +309,7 @@ function tureserva_alojamiento_columns($columns) {
     $columns['date'] = __('Fecha', 'tureserva');
     return $columns;
 }
-add_filter('manage_alojamiento_posts_columns', 'tureserva_alojamiento_columns');
+add_filter('manage_tureserva_alojamiento_posts_columns', 'tureserva_alojamiento_columns');
 
 function tureserva_alojamiento_column_content($column, $post_id) {
     switch($column){
@@ -331,4 +331,4 @@ function tureserva_alojamiento_column_content($column, $post_id) {
             break;
     }
 }
-add_action('manage_alojamiento_posts_custom_column', 'tureserva_alojamiento_column_content', 10, 2);
+add_action('manage_tureserva_alojamiento_posts_custom_column', 'tureserva_alojamiento_column_content', 10, 2);

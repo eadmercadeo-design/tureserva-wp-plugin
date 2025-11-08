@@ -25,7 +25,7 @@ function tureserva_register_temporadas_cpt() {
         'labels'                => $labels,
         'public'                => false,
         'show_ui'               => true,
-        'show_in_menu'          => 'edit.php?post_type=alojamiento', // dentro de Alojamiento
+        'show_in_menu'          => 'edit.php?post_type=tureserva_alojamiento', // dentro de Alojamiento
         'supports'              => array('title'),
         'menu_position'         => 7,
         'has_archive'           => false,

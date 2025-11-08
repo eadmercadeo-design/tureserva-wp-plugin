@@ -19,7 +19,7 @@ add_action('admin_post_tureserva_sync_all_calendars', 'tureserva_sync_all_calend
 
 function tureserva_sync_all_calendars() {
     $alojamientos = get_posts([
-        'post_type'   => 'alojamiento',
+        'post_type'   => 'tureserva_alojamiento',
         'post_status' => 'publish',
         'numberposts' => -1,
     ]);

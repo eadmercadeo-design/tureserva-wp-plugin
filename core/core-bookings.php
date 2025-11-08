@@ -73,8 +73,8 @@ function tureserva_crear_reserva( $args = array() ) {
 
     // Guardar metadatos
     update_post_meta( $reserva_id, '_tureserva_alojamiento_id', intval( $data['alojamiento_id'] ) );
-    update_post_meta( $reserva_id, '_tureserva_check_in', sanitize_text_field( $data['check_in'] ) );
-    update_post_meta( $reserva_id, '_tureserva_check_out', sanitize_text_field( $data['check_out'] ) );
+    update_post_meta( $reserva_id, '_tureserva_checkin', sanitize_text_field( $data['check_in'] ) );
+    update_post_meta( $reserva_id, '_tureserva_checkout', sanitize_text_field( $data['check_out'] ) );
     update_post_meta( $reserva_id, '_tureserva_adultos', intval( $data['huespedes']['adultos'] ) );
     update_post_meta( $reserva_id, '_tureserva_ninos', intval( $data['huespedes']['ninos'] ) );
     update_post_meta( $reserva_id, '_tureserva_servicios', $data['servicios'] );
@@ -116,8 +116,8 @@ function tureserva_obtener_detalles_reserva( $reserva_id ) {
     $datos = array(
         'id'           => $reserva_id,
         'alojamiento'  => intval( get_post_meta( $reserva_id, '_tureserva_alojamiento_id', true ) ),
-        'check_in'     => get_post_meta( $reserva_id, '_tureserva_check_in', true ),
-        'check_out'    => get_post_meta( $reserva_id, '_tureserva_check_out', true ),
+        'check_in'     => get_post_meta( $reserva_id, '_tureserva_checkin', true ),
+        'check_out'    => get_post_meta( $reserva_id, '_tureserva_checkout', true ),
         'adultos'      => intval( get_post_meta( $reserva_id, '_tureserva_adultos', true ) ),
         'ninos'        => intval( get_post_meta( $reserva_id, '_tureserva_ninos', true ) ),
         'servicios'    => get_post_meta( $reserva_id, '_tureserva_servicios', true ),

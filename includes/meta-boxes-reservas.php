@@ -18,7 +18,7 @@ function tureserva_add_reservas_metaboxes() {
         'tureserva_reserva_detalles',
         'Detalles de la Reserva',
         'tureserva_render_reserva_metabox',
-        'reservas',
+        'tureserva_reservas',
         'normal',
         'high'
     );
@@ -33,9 +33,9 @@ function tureserva_render_reserva_metabox($post) {
     $checkout  = get_post_meta($post->ID, '_tureserva_checkout', true);
     $adultos   = get_post_meta($post->ID, '_tureserva_adultos', true);
     $ninos     = get_post_meta($post->ID, '_tureserva_ninos', true);
-    $alojamiento = get_post_meta($post->ID, '_tureserva_alojamiento', true);
-    $precio    = get_post_meta($post->ID, '_tureserva_precio', true);
-    $cliente   = get_post_meta($post->ID, '_tureserva_cliente', true);
+    $alojamiento = get_post_meta($post->ID, '_tureserva_alojamiento_id', true);
+    $precio    = get_post_meta($post->ID, '_tureserva_precio_total', true);
+    $cliente   = get_post_meta($post->ID, '_tureserva_cliente_nombre', true);
     $estado    = get_post_meta($post->ID, '_tureserva_estado', true);
 
     wp_nonce_field('tureserva_save_reserva', 'tureserva_reserva_nonce');
@@ -70,12 +70,20 @@ function tureserva_render_reserva_metabox($post) {
     </div>
 
     <div class="tureserva-field">
-        <label class="tureserva-label">Tipo de alojamiento</label>
-        <select name="tureserva_alojamiento">
+        <label class="tureserva-label">Alojamiento</label>
+        <select name="tureserva_alojamiento_id">
+            <option value="0"><?php _e('Seleccionar alojamiento', 'tureserva'); ?></option>
             <?php
-            $alojamientos = get_posts(array('post_type' => 'alojamientos', 'numberposts' => -1));
+            $alojamientos = get_posts(array(
+                'post_type' => 'tureserva_alojamiento', 
+                'posts_per_page' => -1,
+                'post_status' => 'publish',
+                'orderby' => 'title',
+                'order' => 'ASC'
+            ));
             foreach ($alojamientos as $a) {
-                echo '<option value="' . esc_attr($a->ID) . '"' . selected($alojamiento, $a->ID, false) . '>' . esc_html($a->post_title) . '</option>';
+                $selected = selected($alojamiento, $a->ID, false);
+                echo '<option value="' . esc_attr($a->ID) . '"' . $selected . '>' . esc_html($a->post_title) . '</option>';
             }
             ?>
         </select>
@@ -83,12 +91,12 @@ function tureserva_render_reserva_metabox($post) {
 
     <div class="tureserva-field">
         <label class="tureserva-label">Precio total (USD)</label>
-        <input type="number" step="0.01" name="tureserva_precio" value="<?php echo esc_attr($precio); ?>">
+        <input type="number" step="0.01" name="tureserva_precio_total" value="<?php echo esc_attr($precio); ?>">
     </div>
 
     <div class="tureserva-field">
         <label class="tureserva-label">Cliente</label>
-        <input type="text" name="tureserva_cliente" value="<?php echo esc_attr($cliente); ?>">
+        <input type="text" name="tureserva_cliente_nombre" value="<?php echo esc_attr($cliente); ?>">
     </div>
 
     <div class="tureserva-field">
@@ -114,16 +122,30 @@ function tureserva_save_reserva_metabox($post_id) {
     if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) return;
     if (!current_user_can('edit_post', $post_id)) return;
 
-    $fields = [
-        'tureserva_checkin', 'tureserva_checkout', 'tureserva_adultos',
-        'tureserva_ninos', 'tureserva_alojamiento', 'tureserva_precio',
-        'tureserva_cliente', 'tureserva_estado'
-    ];
-
-    foreach ($fields as $f) {
-        if (isset($_POST[$f])) {
-            update_post_meta($post_id, '_' . $f, sanitize_text_field($_POST[$f]));
-        }
+    // Guardar campos individualmente para mantener consistencia con los nombres de meta campos
+    if (isset($_POST['tureserva_checkin'])) {
+        update_post_meta($post_id, '_tureserva_checkin', sanitize_text_field($_POST['tureserva_checkin']));
+    }
+    if (isset($_POST['tureserva_checkout'])) {
+        update_post_meta($post_id, '_tureserva_checkout', sanitize_text_field($_POST['tureserva_checkout']));
+    }
+    if (isset($_POST['tureserva_adultos'])) {
+        update_post_meta($post_id, '_tureserva_adultos', intval($_POST['tureserva_adultos']));
+    }
+    if (isset($_POST['tureserva_ninos'])) {
+        update_post_meta($post_id, '_tureserva_ninos', intval($_POST['tureserva_ninos']));
+    }
+    if (isset($_POST['tureserva_alojamiento_id'])) {
+        update_post_meta($post_id, '_tureserva_alojamiento_id', intval($_POST['tureserva_alojamiento_id']));
+    }
+    if (isset($_POST['tureserva_precio_total'])) {
+        update_post_meta($post_id, '_tureserva_precio_total', floatval($_POST['tureserva_precio_total']));
+    }
+    if (isset($_POST['tureserva_cliente_nombre'])) {
+        update_post_meta($post_id, '_tureserva_cliente_nombre', sanitize_text_field($_POST['tureserva_cliente_nombre']));
+    }
+    if (isset($_POST['tureserva_estado'])) {
+        update_post_meta($post_id, '_tureserva_estado', sanitize_text_field($_POST['tureserva_estado']));
     }
 }
-add_action('save_post_reservas', 'tureserva_save_reserva_metabox');
+add_action('save_post_tureserva_reservas', 'tureserva_save_reserva_metabox');

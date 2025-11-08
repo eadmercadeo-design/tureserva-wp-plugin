@@ -9,7 +9,7 @@ if (!defined('ABSPATH')) exit;
 // === AÑADIR SUBMENÚ JUSTO DEBAJO DE "AÑADIR NUEVO ALOJAMIENTO" === //
 function tureserva_add_generar_alojamientos_submenu() {
     add_submenu_page(
-        'edit.php?post_type=alojamiento',
+        'edit.php?post_type=tureserva_alojamiento',
         __('Generar alojamientos', 'tureserva'),
         __('Generar alojamientos', 'tureserva'),
         'manage_options',
@@ -64,7 +64,7 @@ function tureserva_run_alojamientos_generator($regenerar = false) {
 
         // Obtener alojamientos actuales de este tipo
         $actuales = get_posts([
-            'post_type'   => 'alojamiento',
+            'post_type'   => 'tureserva_alojamiento',
             'numberposts' => -1,
             'tax_query'   => [[
                 'taxonomy' => 'tipo_alojamiento',
@@ -87,13 +87,13 @@ function tureserva_run_alojamientos_generator($regenerar = false) {
 
             // Saltar si ya existe y no se regeneró
             if (!$regenerar) {
-                $existe = get_page_by_title($titulo, OBJECT, 'alojamiento');
+                $existe = get_page_by_title($titulo, OBJECT, 'tureserva_alojamiento');
                 if ($existe) continue;
             }
 
             wp_insert_post([
                 'post_title'  => $titulo,
-                'post_type'   => 'alojamiento',
+                'post_type'   => 'tureserva_alojamiento',
                 'post_status' => 'publish',
                 'tax_input'   => ['tipo_alojamiento' => [$tipo->term_id]],
             ]);

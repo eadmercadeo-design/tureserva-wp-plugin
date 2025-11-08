@@ -11,7 +11,7 @@ function tureserva_register_atributo_cpt() {
         'labels' => $labels,
         'public' => false,
         'show_ui' => true,
-        'show_in_menu' => 'edit.php?post_type=alojamiento', // 👈 Esto lo mueve dentro de Alojamiento
+        'show_in_menu' => 'edit.php?post_type=tureserva_alojamiento', // 👈 Esto lo mueve dentro de Alojamiento
         'menu_icon' => 'dashicons-filter',
         'supports' => array('title'),
         'show_in_rest' => true,

@@ -36,7 +36,7 @@ function tureserva_cloud_sync_all() {
     // 🔹 Sincronizar ALOJAMIENTOS
     // ===================================================
     $alojamientos = get_posts([
-        'post_type' => 'alojamiento',
+        'post_type' => 'tureserva_alojamiento',
         'post_status' => 'publish',
         'numberposts' => -1,
     ]);

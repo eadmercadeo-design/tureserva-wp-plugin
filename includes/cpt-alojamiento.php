@@ -38,17 +38,19 @@ function tureserva_register_alojamiento_cpt() {
 
     $args = array(
         'labels'                => $labels,
-        'public'                => true,
+        'public'                => false, // 🔒 Interno al panel de administración
+        'show_ui'               => true,  // ✅ Visible en el admin
+        'show_in_menu'          => false, // 🚫 No mostrar automáticamente (se registra manualmente)
         'menu_icon'             => 'dashicons-building',
         'menu_position'         => 5, // 📌 Antes del menú "Reservas"
         'supports'              => array( 'title', 'editor', 'thumbnail', 'excerpt' ),
-        'has_archive'           => true,
+        'has_archive'           => false, // No necesita archivo público
         'show_in_rest'          => true, // Compatible con el editor de bloques
-        'rewrite'               => array( 'slug' => 'alojamientos' ),
+        'rewrite'               => false, // No necesita URLs públicas
         'capability_type'       => 'post',
-        'publicly_queryable'    => true,
+        'publicly_queryable'    => false, // No accesible públicamente
     );
 
-    register_post_type( 'alojamiento', $args );
+    register_post_type( 'tureserva_alojamiento', $args );
 }
 add_action( 'init', 'tureserva_register_alojamiento_cpt' );

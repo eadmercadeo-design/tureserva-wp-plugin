@@ -50,8 +50,8 @@ function tureserva_esta_disponible( $alojamiento_id, $check_in, $check_out ) {
 
     foreach ( $reservas as $reserva ) {
 
-        $entrada = strtotime( get_post_meta( $reserva->ID, '_tureserva_check_in', true ) );
-        $salida  = strtotime( get_post_meta( $reserva->ID, '_tureserva_check_out', true ) );
+        $entrada = strtotime( get_post_meta( $reserva->ID, '_tureserva_checkin', true ) );
+        $salida  = strtotime( get_post_meta( $reserva->ID, '_tureserva_checkout', true ) );
 
         // Validar solapamiento
         if ( $entrada < $fin && $salida > $inicio ) {

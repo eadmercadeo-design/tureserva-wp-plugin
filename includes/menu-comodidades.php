@@ -7,7 +7,7 @@ if (!defined('ABSPATH')) exit;
 
 function tureserva_add_comodidades_submenu() {
     add_submenu_page(
-        'edit.php?post_type=alojamiento',
+        'edit.php?post_type=tureserva_alojamiento',
         __('Comodidades', 'tureserva'),
         __('Comodidades', 'tureserva'),
         'manage_options',
@@ -26,7 +26,7 @@ function tureserva_comodidades_page() {
 
     // Consulta de alojamientos físicos
     $args = [
-        'post_type'      => 'alojamiento',
+        'post_type'      => 'tureserva_alojamiento',
         'posts_per_page' => -1,
         'post_status'    => 'publish',
         'orderby'        => 'title',

@@ -3,43 +3,76 @@
  * ==========================================================
  * MENÚ PRINCIPAL: Alojamiento — TuReserva
  * ==========================================================
- * Crea el menú principal "Alojamiento" en el panel
- * y delega los submenús a las páginas ubicadas en:
- * /admin/pages/
- * ==========================================================
- <?php
-/**
- * ==========================================================
- * MENÚ PRINCIPAL: Alojamiento — TuReserva
- * ==========================================================
- * Este archivo asegura que los submenús personalizados
- * (como "Generar alojamientos" o "Ajustes") se integren
- * correctamente bajo el menú del CPT "Alojamiento".
- *
- * 🚫 Ya no registra un menú principal duplicado.
+ * Registra el menú principal "Alojamiento" en el panel de administración
+ * y los submenús relacionados (Generar alojamientos, Ajustes, etc.).
+ * 
+ * El CPT 'tureserva_alojamiento' está configurado con 'show_in_menu' => false
+ * para que WordPress no lo muestre automáticamente, permitiendo un control
+ * personalizado del menú.
  * ==========================================================
  */
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
 // =======================================================
-// 📌 Verificar existencia del CPT antes de cargar submenús
+// 📌 REGISTRO DEL MENÚ PRINCIPAL "ALOJAMIENTO"
 // =======================================================
-add_action( 'admin_menu', function() {
+add_action( 'admin_menu', 'tureserva_admin_menu_alojamiento', 5 );
 
-    if ( ! post_type_exists( 'alojamiento' ) ) {
+function tureserva_admin_menu_alojamiento() {
+
+    // Verificar que el CPT existe
+    if ( ! post_type_exists( 'tureserva_alojamiento' ) ) {
         return;
     }
 
-    // ⚙️ Aquí podrías añadir submenús personalizados si fuera necesario
-    // Ejemplo:
-    // add_submenu_page(
-    //     'edit.php?post_type=alojamiento',
-    //     __( 'Ejemplo', 'tureserva' ),
-    //     __( 'Ejemplo', 'tureserva' ),
-    //     'manage_options',
-    //     'tureserva-ejemplo',
-    //     'tureserva_render_ejemplo_page'
-    // );
+    // -------------------------------
+    // 🏨 Menú principal "Alojamiento"
+    // -------------------------------
+    add_menu_page(
+        __('Alojamientos', 'tureserva'),
+        __('Alojamiento', 'tureserva'),
+        'manage_options',
+        'edit.php?post_type=tureserva_alojamiento', // usa la pantalla del CPT
+        '',
+        'dashicons-building',
+        5 // 📌 Antes del menú "Reservas" (posición 6)
+    );
+
+    // -------------------------------
+    // 📋 Submenús del CPT
+    // -------------------------------
+
+    // Todas los alojamientos
+    add_submenu_page(
+        'edit.php?post_type=tureserva_alojamiento',
+        __('Todos los alojamientos', 'tureserva'),
+        __('Todos los alojamientos', 'tureserva'),
+        'manage_options',
+        'edit.php?post_type=tureserva_alojamiento'
+    );
+
+    // Añadir nuevo
+    add_submenu_page(
+        'edit.php?post_type=tureserva_alojamiento',
+        __('Añadir nuevo alojamiento', 'tureserva'),
+        __('Añadir nuevo', 'tureserva'),
+        'manage_options',
+        'post-new.php?post_type=tureserva_alojamiento'
+    );
+}
+
+// =======================================================
+// 📌 Verificar existencia del CPT antes de cargar submenús adicionales
+// =======================================================
+add_action( 'admin_menu', function() {
+
+    if ( ! post_type_exists( 'tureserva_alojamiento' ) ) {
+        return;
+    }
+
+    // ⚙️ Aquí se pueden añadir submenús personalizados adicionales
+    // Los submenús como "Generar alojamientos" o "Ajustes" se registran
+    // en sus respectivos archivos (ej: menu-generar-alojamientos.php)
 
 }, 11 );

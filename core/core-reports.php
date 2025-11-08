@@ -29,13 +29,13 @@ function tureserva_generar_reporte( $args = array() ) {
 
     $meta_query = array(
         array(
-            'key'     => '_tureserva_check_in',
+            'key'     => '_tureserva_checkin',
             'value'   => $args['fecha_inicio'],
             'compare' => '>=',
             'type'    => 'DATE',
         ),
         array(
-            'key'     => '_tureserva_check_out',
+            'key'     => '_tureserva_checkout',
             'value'   => $args['fecha_fin'],
             'compare' => '<=',
             'type'    => 'DATE',
@@ -77,8 +77,8 @@ function tureserva_generar_reporte( $args = array() ) {
     foreach ( $query->posts as $reserva ) {
 
         $estado = get_post_meta( $reserva->ID, '_tureserva_estado', true );
-        $check_in  = strtotime( get_post_meta( $reserva->ID, '_tureserva_check_in', true ) );
-        $check_out = strtotime( get_post_meta( $reserva->ID, '_tureserva_check_out', true ) );
+        $check_in  = strtotime( get_post_meta( $reserva->ID, '_tureserva_checkin', true ) );
+        $check_out = strtotime( get_post_meta( $reserva->ID, '_tureserva_checkout', true ) );
         $total     = floatval( get_post_meta( $reserva->ID, '_tureserva_precio_total', true ) );
 
         if ( $estado === 'cancelada' ) continue; // ignorar canceladas en cálculos de ingresos

@@ -25,7 +25,7 @@ function tureserva_register_tarifas_cpt() {
         'labels'             => $labels,
         'public'             => false,
         'show_ui'            => true,
-        'show_in_menu'       => 'edit.php?post_type=alojamiento',
+        'show_in_menu'       => 'edit.php?post_type=tureserva_alojamiento',
         'supports'           => array('title'),
         'menu_position'      => 8,
         'show_in_rest'       => true,
