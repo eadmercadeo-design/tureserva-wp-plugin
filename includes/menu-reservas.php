@@ -19,7 +19,7 @@ function tureserva_admin_menu_reservas() {
         __('Reservas', 'tureserva'),
         __('Reservas', 'tureserva'),
         'manage_options',
-        'edit.php?post_type=reserva', // usa la pantalla del CPT
+        'edit.php?post_type=tureserva_reservas', // usa la pantalla del CPT
         '',
         'dashicons-calendar-alt',
         6
@@ -31,16 +31,16 @@ function tureserva_admin_menu_reservas() {
 
     // Todas las reservas
     add_submenu_page(
-        'edit.php?post_type=reserva',
+        'edit.php?post_type=tureserva_reservas',
         __('Todas las reservas', 'tureserva'),
         __('Todas las reservas', 'tureserva'),
         'manage_options',
-        'edit.php?post_type=reserva'
+        'edit.php?post_type=tureserva_reservas'
     );
 
     // Añadir nueva (pantalla personalizada mejorada)
 add_submenu_page(
-    'edit.php?post_type=reserva',
+    'edit.php?post_type=tureserva_reservas',
     __('Añadir nueva reserva', 'tureserva'),
     __('Añadir nueva', 'tureserva'),
     'manage_options',
@@ -56,7 +56,7 @@ add_submenu_page(
 require_once TURESERVA_PATH . 'admin/pages/historial-pagos.php';
 
 add_submenu_page(
-    'edit.php?post_type=reserva',
+    'edit.php?post_type=tureserva_reservas',
     __('Historial de pagos', 'tureserva'),
     __('Historial de pagos', 'tureserva'),
     'manage_options',
@@ -66,17 +66,17 @@ add_submenu_page(
 
     // Calendario
     add_submenu_page(
-        'edit.php?post_type=reserva',
+        'edit.php?post_type=tureserva_reservas',
         __('Calendario de reservas', 'tureserva'),
         __('Calendario', 'tureserva'),
         'manage_options',
-        'tureserva-calendario',
-        'tureserva_calendario_page'
+        'tureserva_calendario',
+        'tureserva_vista_calendario'
     );
 
     // Clientes
     add_submenu_page(
-        'edit.php?post_type=reserva',
+        'edit.php?post_type=tureserva_reservas',
         __('Clientes', 'tureserva'),
         __('Clientes', 'tureserva'),
         'manage_options',
@@ -86,7 +86,7 @@ add_submenu_page(
 
     // Cupones
     add_submenu_page(
-        'edit.php?post_type=reserva',
+        'edit.php?post_type=tureserva_reservas',
         __('Cupones de descuento', 'tureserva'),
         __('Cupones', 'tureserva'),
         'manage_options',
@@ -96,7 +96,7 @@ add_submenu_page(
 
     // Reglas de reserva
     add_submenu_page(
-        'edit.php?post_type=reserva',
+        'edit.php?post_type=tureserva_reservas',
         __('Reglas de reserva', 'tureserva'),
         __('Reglas de reserva', 'tureserva'),
         'manage_options',
@@ -106,7 +106,7 @@ add_submenu_page(
 
     // Impuestos y cargos
     add_submenu_page(
-        'edit.php?post_type=reserva',
+        'edit.php?post_type=tureserva_reservas',
         __('Impuestos y cargos', 'tureserva'),
         __('Impuestos y cargos', 'tureserva'),
         'manage_options',
@@ -116,7 +116,7 @@ add_submenu_page(
 
     // Sincronizar calendarios
     add_submenu_page(
-        'edit.php?post_type=reserva',
+        'edit.php?post_type=tureserva_reservas',
         __('Sincronización de Calendarios', 'tureserva'),
         __('Sincronizar calendarios', 'tureserva'),
         'manage_options',
@@ -125,7 +125,7 @@ add_submenu_page(
     );
     // Informes
     add_submenu_page(
-        'edit.php?post_type=reserva',
+        'edit.php?post_type=tureserva_reservas',
         __('Informes y estadísticas', 'tureserva'),
         __('Informes', 'tureserva'),
         'manage_options',
@@ -135,7 +135,7 @@ add_submenu_page(
 
     // Extensiones
     add_submenu_page(
-        'edit.php?post_type=reserva',
+        'edit.php?post_type=tureserva_reservas',
         __('Extensiones del sistema', 'tureserva'),
         __('Extensiones', 'tureserva'),
         'manage_options',
@@ -160,43 +160,9 @@ add_action('admin_menu', 'tureserva_admin_menu_reservas', 9);
 
 
 // =======================================================
-// 📅 Página de Calendario — Callback con FullCalendar
+// 📅 Página de Calendario — La función tureserva_vista_calendario()
+// está definida en menu-calendario.php y se usa aquí
 // =======================================================
-function tureserva_calendario_page() {
-    ?>
-    <div class="wrap">
-        <h1><?php _e('Calendario de Reservas', 'tureserva'); ?></h1>
-        <p><?php _e('Visualiza las reservas existentes en formato calendario.', 'tureserva'); ?></p>
-
-        <div id="tureserva-calendar" style="margin-top:30px;"></div>
-
-        <!-- FullCalendar CDN -->
-        <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/main.min.css" rel="stylesheet">
-        <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/main.min.js"></script>
-
-        <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const calendarEl = document.getElementById('tureserva-calendar');
-            const calendar = new FullCalendar.Calendar(calendarEl, {
-                initialView: 'dayGridMonth',
-                locale: 'es',
-                height: 'auto',
-                headerToolbar: {
-                    left: 'prev,next today',
-                    center: 'title',
-                    right: 'dayGridMonth,timeGridWeek,timeGridDay'
-                },
-                events: [
-                    { title: 'Reserva #001', start: '2025-11-04', end: '2025-11-06' },
-                    { title: 'Reserva #002', start: '2025-11-10' }
-                ]
-            });
-            calendar.render();
-        });
-        </script>
-    </div>
-    <?php
-}
 
 // =======================================================
 // 📋 CALLBACKS DE PÁGINAS (Placeholders)

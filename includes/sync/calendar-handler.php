@@ -105,7 +105,7 @@ function tureserva_sync_all_calendars() {
     }
 
     // Redirigir al panel
-    wp_redirect(admin_url('edit.php?post_type=reserva&page=tureserva-calendar-sync&synced=1'));
+    wp_redirect(admin_url('edit.php?post_type=tureserva_reservas&page=tureserva-calendar-sync&synced=1'));
     exit;
 }
 

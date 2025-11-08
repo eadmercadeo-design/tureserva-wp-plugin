@@ -50,6 +50,6 @@ add_action('admin_post_tureserva_clear_sync_logs', function () {
     global $wpdb;
     $table = $wpdb->prefix . 'tureserva_sync_log';
     $wpdb->query("TRUNCATE TABLE $table");
-    wp_redirect(admin_url('edit.php?post_type=reserva&page=tureserva-calendar-sync'));
+    wp_redirect(admin_url('edit.php?post_type=tureserva_reservas&page=tureserva-calendar-sync'));
     exit;
 });

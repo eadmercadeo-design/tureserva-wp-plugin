@@ -80,10 +80,10 @@ function tureserva_init() {
     // 🗂️ MENÚS ADMINISTRATIVOS
     // -------------------------------------------------------
     require_once TURESERVA_PATH . 'includes/menu-alojamiento.php';
-    require_once TURESERVA_PATH . 'includes/menu-reservas.php';     // ✅ Menú unificado
+    require_once TURESERVA_PATH . 'includes/menu-calendario.php';    // ⚠️ Debe cargarse antes de menu-reservas.php
+    require_once TURESERVA_PATH . 'includes/menu-reservas.php';     // ✅ Menú unificado (usa tureserva_vista_calendario)
     require_once TURESERVA_PATH . 'includes/menu-comodidades.php';
     require_once TURESERVA_PATH . 'includes/menu-notificaciones.php';
-    require_once TURESERVA_PATH . 'includes/menu-calendario.php';
     require_once TURESERVA_PATH . 'includes/menu-reportes.php';
     require_once TURESERVA_PATH . 'includes/menu-tokens.php';
     require_once TURESERVA_PATH . 'includes/menu-cron.php';

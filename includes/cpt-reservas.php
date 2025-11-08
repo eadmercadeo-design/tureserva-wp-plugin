@@ -47,7 +47,7 @@ function tureserva_register_cpt_reservas() {
         'publicly_queryable'    => false,
     );
 
-    register_post_type( 'reserva', $args );
+    register_post_type('tureserva_reservas', $args);
 }
 add_action( 'init', 'tureserva_register_cpt_reservas' );
 
@@ -56,8 +56,8 @@ add_action( 'init', 'tureserva_register_cpt_reservas' );
 // =======================================================
 add_action('load-post-new.php', function() {
     global $typenow;
-    if ($typenow === 'reserva') {
-        wp_redirect(admin_url('edit.php?post_type=reserva&page=tureserva-add-reserva'));
+    if ($typenow === 'tureserva_reservas') {
+        wp_redirect(admin_url('edit.php?post_type=tureserva_reservas&page=tureserva-add-reserva'));
         exit;
     }
 });
@@ -65,7 +65,7 @@ add_action('load-post-new.php', function() {
 // =======================================================
 // 🧾 COLUMNAS PERSONALIZADAS EN EL ADMIN
 // =======================================================
-add_filter( 'manage_edit-reserva_columns', 'tureserva_reservas_columns' );
+add_filter( 'manage_edit-tureserva_reservas_columns', 'tureserva_reservas_columns' );
 function tureserva_reservas_columns( $columns ) {
     return array(
         'cb'          => '<input type="checkbox" />',
@@ -83,7 +83,7 @@ function tureserva_reservas_columns( $columns ) {
 // =======================================================
 // 🧮 RENDERIZADO DE COLUMNAS
 // =======================================================
-add_action( 'manage_reserva_posts_custom_column', 'tureserva_render_reservas_columns', 10, 2 );
+add_action( 'manage_tureserva_reservas_posts_custom_column', 'tureserva_render_reservas_columns', 10, 2 );
 function tureserva_render_reservas_columns( $column, $post_id ) {
 
     switch ( $column ) {

@@ -35,7 +35,7 @@ function tureserva_register_cpt_pagos() {
         'labels'             => $labels,
         'public'             => false,
 'show_ui'            => true,
-'show_in_menu'       => 'edit.php?post_type=reserva', // Se agrupa bajo Reservas
+'show_in_menu'       => 'edit.php?post_type=tureserva_reservas', // Se agrupa bajo Reservas
 'supports'           => array( 'title', 'custom-fields' ),
 'capability_type'    => 'post',
 'map_meta_cap'       => true,

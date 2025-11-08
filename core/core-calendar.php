@@ -60,8 +60,8 @@ function tureserva_get_calendar() {
     $reservas = get_posts($args);
 
     foreach ($reservas as $reserva) {
-        $check_in   = get_post_meta($reserva->ID, '_tureserva_check_in', true);
-        $check_out  = get_post_meta($reserva->ID, '_tureserva_check_out', true);
+        $check_in   = get_post_meta($reserva->ID, '_tureserva_checkin', true);
+        $check_out  = get_post_meta($reserva->ID, '_tureserva_checkout', true);
         $estado_res = get_post_meta($reserva->ID, '_tureserva_estado', true);
         $cliente    = get_post_meta($reserva->ID, '_tureserva_cliente_nombre', true);
         $aloj_id    = get_post_meta($reserva->ID, '_tureserva_alojamiento_id', true);

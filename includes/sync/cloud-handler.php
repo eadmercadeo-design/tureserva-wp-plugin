@@ -159,7 +159,7 @@ function tureserva_cloud_sync_all() {
     echo '<h1>✅ Sincronización completada con éxito</h1>';
     echo '<p>Los alojamientos y reservas se enviaron correctamente a Supabase.</p>';
     echo '<p><strong>Duración:</strong> ' . esc_html($duracion) . ' segundos</p>';
-    echo '<a href="' . admin_url('edit.php?post_type=reserva&page=tureserva-cloud-sync') . '" class="button button-primary">Volver</a>';
+    echo '<a href="' . admin_url('edit.php?post_type=tureserva_reservas&page=tureserva-cloud-sync') . '" class="button button-primary">Volver</a>';
     echo '</div>';
 
     exit;
