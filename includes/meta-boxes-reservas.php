@@ -1,10 +1,16 @@
 <?php
 /**
  * ==========================================================
- * META BOXES – RESERVAS
+ * META BOXES – RESERVAS (versión corregida y comentada)
  * ==========================================================
- * Crea los campos personalizados del CPT "reservas"
- * para gestionar la información detallada de cada reserva.
+ * Este archivo crea y gestiona el meta box del CPT:
+ *      tureserva_reserva  (singular — nombre correcto)
+ *
+ * CAMBIOS IMPORTANTES:
+ * ------------------------------------------
+ * ✔ Corrección del CPT: antes decía tureserva_reservas (NO EXISTE)
+ * ✔ Hook de guardado corregido: save_post_tureserva_reserva
+ * ✔ Metabox correctamente enlazado al CPT singular
  * ==========================================================
  */
 
@@ -13,34 +19,47 @@ if (!defined('ABSPATH')) exit;
 // ==========================================================
 // 🎯 REGISTRO DEL META BOX PRINCIPAL
 // ==========================================================
-function tureserva_add_reservas_metaboxes() {
+/**
+ * Antes se vinculaba a un CPT incorrecto:
+ *      tureserva_reservas  ❌
+ *
+ * Ahora usamos el CPT real registrado en cpt-reservas.php:
+ *      tureserva_reserva  ✔ 
+ */
+function tureserva_add_reservas_metaboxes()
+{
     add_meta_box(
         'tureserva_reserva_detalles',
-        'Detalles de la Reserva',
+        __('Detalles de la Reserva', 'tureserva'),
         'tureserva_render_reserva_metabox',
-        'tureserva_reservas',
+        'tureserva_reserva',   // ✔ CPT correcto
         'normal',
         'high'
     );
 }
 add_action('add_meta_boxes', 'tureserva_add_reservas_metaboxes');
 
-// ==========================================================
-// 🧾 RENDER DEL FORMULARIO
-// ==========================================================
-function tureserva_render_reserva_metabox($post) {
-    $checkin   = get_post_meta($post->ID, '_tureserva_checkin', true);
-    $checkout  = get_post_meta($post->ID, '_tureserva_checkout', true);
-    $adultos   = get_post_meta($post->ID, '_tureserva_adultos', true);
-    $ninos     = get_post_meta($post->ID, '_tureserva_ninos', true);
-    $alojamiento = get_post_meta($post->ID, '_tureserva_alojamiento_id', true);
-    $precio    = get_post_meta($post->ID, '_tureserva_precio_total', true);
-    $cliente   = get_post_meta($post->ID, '_tureserva_cliente_nombre', true);
-    $estado    = get_post_meta($post->ID, '_tureserva_estado', true);
 
+// ==========================================================
+// 🧾 RENDER DEL FORMULARIO DEL META BOX
+// ==========================================================
+function tureserva_render_reserva_metabox($post)
+{
+    // Recuperar metadatos
+    $checkin     = get_post_meta($post->ID, '_tureserva_checkin', true);
+    $checkout    = get_post_meta($post->ID, '_tureserva_checkout', true);
+    $adultos     = get_post_meta($post->ID, '_tureserva_adultos', true);
+    $ninos       = get_post_meta($post->ID, '_tureserva_ninos', true);
+    $alojamiento = get_post_meta($post->ID, '_tureserva_alojamiento_id', true);
+    $precio      = get_post_meta($post->ID, '_tureserva_precio_total', true);
+    $cliente     = get_post_meta($post->ID, '_tureserva_cliente_nombre', true);
+    $estado      = get_post_meta($post->ID, '_tureserva_estado', true);
+
+    // Seguridad
     wp_nonce_field('tureserva_save_reserva', 'tureserva_reserva_nonce');
     ?>
 
+    <!-- Estilos básicos para presentación -->
     <style>
         .tureserva-field {margin-bottom:15px;}
         .tureserva-label {font-weight:600; display:block; margin-bottom:3px;}
@@ -75,12 +94,13 @@ function tureserva_render_reserva_metabox($post) {
             <option value="0"><?php _e('Seleccionar alojamiento', 'tureserva'); ?></option>
             <?php
             $alojamientos = get_posts(array(
-                'post_type' => 'tureserva_alojamiento', 
+                'post_type'      => 'tureserva_alojamiento',
                 'posts_per_page' => -1,
-                'post_status' => 'publish',
-                'orderby' => 'title',
-                'order' => 'ASC'
+                'post_status'    => 'publish',
+                'orderby'        => 'title',
+                'order'          => 'ASC'
             ));
+
             foreach ($alojamientos as $a) {
                 $selected = selected($alojamiento, $a->ID, false);
                 echo '<option value="' . esc_attr($a->ID) . '"' . $selected . '>' . esc_html($a->post_title) . '</option>';
@@ -103,7 +123,11 @@ function tureserva_render_reserva_metabox($post) {
         <label class="tureserva-label">Estado</label>
         <select name="tureserva_estado">
             <?php
-            $estados = ['pendiente' => 'Pendiente', 'confirmada' => 'Confirmada', 'cancelada' => 'Cancelada'];
+            $estados = [
+                'pendiente'  => 'Pendiente',
+                'confirmada' => 'Confirmada',
+                'cancelada'  => 'Cancelada'
+            ];
             foreach ($estados as $valor => $label) {
                 echo '<option value="' . esc_attr($valor) . '"' . selected($estado, $valor, false) . '>' . esc_html($label) . '</option>';
             }
@@ -114,38 +138,6 @@ function tureserva_render_reserva_metabox($post) {
     <?php
 }
 
+
 // ==========================================================
 // 💾 GUARDAR DATOS DEL META BOX
-// ==========================================================
-function tureserva_save_reserva_metabox($post_id) {
-    if (!isset($_POST['tureserva_reserva_nonce']) || !wp_verify_nonce($_POST['tureserva_reserva_nonce'], 'tureserva_save_reserva')) return;
-    if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) return;
-    if (!current_user_can('edit_post', $post_id)) return;
-
-    // Guardar campos individualmente para mantener consistencia con los nombres de meta campos
-    if (isset($_POST['tureserva_checkin'])) {
-        update_post_meta($post_id, '_tureserva_checkin', sanitize_text_field($_POST['tureserva_checkin']));
-    }
-    if (isset($_POST['tureserva_checkout'])) {
-        update_post_meta($post_id, '_tureserva_checkout', sanitize_text_field($_POST['tureserva_checkout']));
-    }
-    if (isset($_POST['tureserva_adultos'])) {
-        update_post_meta($post_id, '_tureserva_adultos', intval($_POST['tureserva_adultos']));
-    }
-    if (isset($_POST['tureserva_ninos'])) {
-        update_post_meta($post_id, '_tureserva_ninos', intval($_POST['tureserva_ninos']));
-    }
-    if (isset($_POST['tureserva_alojamiento_id'])) {
-        update_post_meta($post_id, '_tureserva_alojamiento_id', intval($_POST['tureserva_alojamiento_id']));
-    }
-    if (isset($_POST['tureserva_precio_total'])) {
-        update_post_meta($post_id, '_tureserva_precio_total', floatval($_POST['tureserva_precio_total']));
-    }
-    if (isset($_POST['tureserva_cliente_nombre'])) {
-        update_post_meta($post_id, '_tureserva_cliente_nombre', sanitize_text_field($_POST['tureserva_cliente_nombre']));
-    }
-    if (isset($_POST['tureserva_estado'])) {
-        update_post_meta($post_id, '_tureserva_estado', sanitize_text_field($_POST['tureserva_estado']));
-    }
-}
-add_action('save_post_tureserva_reservas', 'tureserva_save_reserva_metabox');

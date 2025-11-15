@@ -1,49 +1,61 @@
 <?php
 /**
- * Submenú: Generar alojamientos
- * Crea alojamientos físicos a partir de los tipos definidos
+ * ==========================================================
+ * ADMIN PAGE: Generar Alojamientos — TuReserva
+ * ==========================================================
+ * NOTA IMPORTANTE:
+ * Este archivo SOLO contiene:
+ *  ✔ La pantalla de administración
+ *  ✔ La lógica para generar alojamientos
+ *
+ * El submenú que apunta a esta pantalla se registra EXCLUSIVAMENTE 
+ * en /includes/menu-alojamiento.php para evitar duplicados.
+ * ==========================================================
  */
 
 if (!defined('ABSPATH')) exit;
 
-// === AÑADIR SUBMENÚ JUSTO DEBAJO DE "AÑADIR NUEVO ALOJAMIENTO" === //
-function tureserva_add_generar_alojamientos_submenu() {
-    add_submenu_page(
-        'edit.php?post_type=tureserva_alojamiento',
-        __('Generar alojamientos', 'tureserva'),
-        __('Generar alojamientos', 'tureserva'),
-        'manage_options',
-        'tureserva-generar-alojamientos',
-        'tureserva_generar_alojamientos_page'
-    );
-}
-add_action('admin_menu', 'tureserva_add_generar_alojamientos_submenu', 11);
-
-
-// === PANTALLA DE ADMINISTRACIÓN === //
-function tureserva_generar_alojamientos_page() {
+// ==========================================================
+// 🖥 PANTALLA DE ADMINISTRACIÓN: Generar Alojamientos
+// ==========================================================
+function tureserva_render_generar_alojamientos_page()
+{
     echo '<div class="wrap">';
     echo '<h1>' . __('Generar alojamientos', 'tureserva') . '</h1>';
-    echo '<p>Este proceso crea o regenera alojamientos físicos según el número especificado en cada tipo de alojamiento. '
-        . 'Si ya existen, puedes optar por regenerarlos para ajustar la cantidad o eliminar los sobrantes.</p>';
 
+    echo '<p style="max-width:700px;">Este proceso crea o regenera alojamientos físicos según 
+          el número definido en cada <strong>tipo de alojamiento</strong>. 
+          Si ya existen, puedes optar por regenerarlos para ajustar cantidades 
+          o eliminar los sobrantes.</p>';
+
+    // Procesar envío del formulario
     if (isset($_POST['tureserva_generar'])) {
-        $regenerar = isset($_POST['tureserva_regenerar']) ? true : false;
+
+        $regenerar = isset($_POST['tureserva_regenerar']);
         $resultado = tureserva_run_alojamientos_generator($regenerar);
-        echo '<div class="notice notice-success"><p><strong>Resultado:</strong> ' . esc_html($resultado) . '</p></div>';
+
+        echo '<div class="notice notice-success"><p><strong>Resultado:</strong> ' 
+            . esc_html($resultado) . '</p></div>';
     }
 
+    // Formulario
     echo '<form method="post" style="margin-top:20px;">';
-    echo '<label><input type="checkbox" name="tureserva_regenerar" value="1"> '
-        . 'Regenerar alojamientos existentes (borra y recrea según el número actual)</label><br><br>';
+    echo '<label><input type="checkbox" name="tureserva_regenerar" value="1"> 
+          Regenerar alojamientos existentes (borra y recrea según el número actual)</label><br><br>';
+
     submit_button('Generar alojamientos', 'primary', 'tureserva_generar');
+
     echo '</form>';
     echo '</div>';
 }
 
 
-// === LÓGICA PRINCIPAL: GENERAR O REGENERAR === //
-function tureserva_run_alojamientos_generator($regenerar = false) {
+// ==========================================================
+// 🧠 LÓGICA PRINCIPAL: Generar o Regenerar Alojamientos
+// ==========================================================
+function tureserva_run_alojamientos_generator($regenerar = false)
+{
+    // Obtener tipos de alojamiento
     $tipos = get_terms([
         'taxonomy'   => 'tipo_alojamiento',
         'hide_empty' => false,
@@ -58,11 +70,12 @@ function tureserva_run_alojamientos_generator($regenerar = false) {
 
     foreach ($tipos as $tipo) {
 
-        // Obtener número real desde el metacampo (si lo tienes guardado así)
-        $num_alojamientos = get_term_meta($tipo->term_id, 'tureserva_numero_alojamientos', true);
-        if (empty($num_alojamientos) || $num_alojamientos < 1) continue;
+        // Cuántos alojamientos debe tener este tipo
+        $num_alojamientos = (int) get_term_meta($tipo->term_id, 'tureserva_numero_alojamientos', true);
 
-        // Obtener alojamientos actuales de este tipo
+        if ($num_alojamientos < 1) continue;
+
+        // Obtener alojamientos existentes del tipo
         $actuales = get_posts([
             'post_type'   => 'tureserva_alojamiento',
             'numberposts' => -1,
@@ -73,7 +86,7 @@ function tureserva_run_alojamientos_generator($regenerar = false) {
             ]]
         ]);
 
-        // Si se marca "regenerar", borrar todos los existentes primero
+        // Regeneración completa (borrar todo)
         if ($regenerar && !empty($actuales)) {
             foreach ($actuales as $a) {
                 wp_delete_post($a->ID, true);
@@ -81,11 +94,12 @@ function tureserva_run_alojamientos_generator($regenerar = false) {
             }
         }
 
-        // Crear las nuevas unidades
+        // Crear nuevas unidades
         for ($i = 1; $i <= $num_alojamientos; $i++) {
+
             $titulo = $tipo->name . ' ' . $i;
 
-            // Saltar si ya existe y no se regeneró
+            // Si NO estamos regenerando, evitar duplicados
             if (!$regenerar) {
                 $existe = get_page_by_title($titulo, OBJECT, 'tureserva_alojamiento');
                 if ($existe) continue;
@@ -95,13 +109,16 @@ function tureserva_run_alojamientos_generator($regenerar = false) {
                 'post_title'  => $titulo,
                 'post_type'   => 'tureserva_alojamiento',
                 'post_status' => 'publish',
-                'tax_input'   => ['tipo_alojamiento' => [$tipo->term_id]],
+                'tax_input'   => [
+                    'tipo_alojamiento' => [$tipo->term_id]
+                ],
             ]);
 
             $creados++;
         }
     }
 
+    // Resultado
     $msg = [];
     if ($creados > 0) $msg[] = "$creados alojamientos generados.";
     if ($eliminados > 0) $msg[] = "$eliminados eliminados antes de regenerar.";
