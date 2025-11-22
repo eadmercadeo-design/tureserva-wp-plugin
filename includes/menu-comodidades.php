@@ -7,7 +7,7 @@ if (!defined('ABSPATH')) exit;
 
 function tureserva_add_comodidades_submenu() {
     add_submenu_page(
-        'edit.php?post_type=tureserva_alojamiento',
+        'edit.php?post_type=trs_alojamiento',
         __('Comodidades', 'tureserva'),
         __('Comodidades', 'tureserva'),
         'manage_options',

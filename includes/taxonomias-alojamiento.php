@@ -62,6 +62,31 @@ function tureserva_register_taxonomias_alojamiento() {
         'show_in_rest'      => true,
         'rewrite'           => array('slug' => 'tipo-alojamiento'),
     ));
+
+
+    // ==========================================================
+    // 🏷️ ETIQUETAS DE ALOJAMIENTO
+    // ==========================================================
+    $labels_etiqueta = array(
+        'name'              => __('Etiquetas', 'tureserva'),
+        'singular_name'     => __('Etiqueta', 'tureserva'),
+        'search_items'      => __('Buscar etiquetas', 'tureserva'),
+        'all_items'         => __('Todas las etiquetas', 'tureserva'),
+        'edit_item'         => __('Editar etiqueta', 'tureserva'),
+        'update_item'       => __('Actualizar etiqueta', 'tureserva'),
+        'add_new_item'      => __('Agregar nueva etiqueta', 'tureserva'),
+        'new_item_name'     => __('Nuevo nombre de etiqueta', 'tureserva'),
+        'menu_name'         => __('Etiquetas', 'tureserva'),
+    );
+
+    register_taxonomy('tureserva_etiqueta', array('trs_alojamiento'), array(
+        'labels'            => $labels_etiqueta,
+        'hierarchical'      => false, // Tags son no-jerárquicas
+        'show_ui'           => true,
+        'show_admin_column' => true,
+        'show_in_rest'      => true,
+        'rewrite'           => array('slug' => 'etiqueta-alojamiento'),
+    ));
 }
 
 add_action('init', 'tureserva_register_taxonomias_alojamiento');

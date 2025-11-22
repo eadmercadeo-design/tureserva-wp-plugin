@@ -41,7 +41,7 @@ function tureserva_register_tarifas_cpt()
         'labels'             => $labels,
         'public'             => false,
         'show_ui'            => true,
-        'show_in_menu'       => 'edit.php?post_type=tureserva_alojamiento', // ✔ Dentro del módulo Alojamiento
+        'show_in_menu'       => 'edit.php?post_type=trs_alojamiento', // ✔ Dentro del módulo Alojamiento
         'supports'           => array('title'),
         'menu_position'      => 8,
         'show_in_rest'       => false, // Gutenberg desactivado (más estable)
@@ -73,163 +73,191 @@ add_action('add_meta_boxes', 'tureserva_add_tarifas_metabox');
 // ==========================================================
 // 🧱 RENDER DEL FORMULARIO DEL METABOX
 // ==========================================================
+// ==========================================================
+// 🧱 RENDER DEL FORMULARIO DEL METABOX (REDISEÑADO)
+// ==========================================================
 function tureserva_render_tarifas_metabox($post)
 {
-    // 🗂️ Obtener temporadas (asumiendo que el CPT existe)
-    $temporadas = get_posts([
-        'post_type'      => 'temporada',
-        'posts_per_page' => -1,
-        'post_status'    => 'publish'
-    ]);
-
-    // Obtener precios guardados
-    $precios = get_post_meta($post->ID, '_tureserva_precios_variables', true);
+    // Datos Globales
+    $alojamiento_id = get_post_meta($post->ID, '_tureserva_alojamiento_id', true);
+    $precios = get_post_meta($post->ID, '_tureserva_precios', true); // Nueva estructura de datos
     if (!is_array($precios)) $precios = [];
 
-    wp_nonce_field('tureserva_save_tarifas', 'tureserva_tarifas_nonce');
+    // Recursos
+    $alojamientos = get_posts(['post_type' => 'trs_alojamiento', 'posts_per_page' => -1]);
+    $temporadas = get_posts(['post_type' => 'temporada', 'posts_per_page' => -1]);
 
+    wp_nonce_field('tureserva_save_tarifas', 'tureserva_tarifas_nonce');
     ?>
 
-    <style>
-        /* Estilos del metabox (igual que tu versión original) */
-        .tureserva-precios-container {display:flex;flex-direction:column;gap:16px;}
-        .tureserva-precio-item {background:#f7f7f7;border:1px solid #ddd;border-radius:10px;padding:16px;position:relative;}
-        .tureserva-grid {display:grid;grid-template-columns:1fr 1.3fr 1.3fr 1.3fr 60px;gap:14px;align-items:start;}
-        .tureserva-box label {display:block;font-weight:600;font-size:13px;margin-bottom:6px;color:#222;}
-        .tureserva-box input, .tureserva-box select {width:100%;padding:6px 10px;border:1px solid #ccc;border-radius:6px;background:#fff;font-size:14px;}
-        .tureserva-especial{background:#f7f7f7;border-radius:8px;padding:12px;border:1px solid #e2e2e2;}
-        .tureserva-delete{background:transparent;border:none;cursor:pointer;margin-top:24px;padding:0;}
-    </style>
+    <div class="tureserva-metabox-wrapper">
+        
+        <!-- 1. Configuración Global -->
+        <div class="tureserva-global-settings">
+            <label>🏠 Alojamiento Asociado:</label>
+            <select name="tureserva_alojamiento_id">
+                <option value="">-- Seleccionar Alojamiento --</option>
+                <?php foreach ($alojamientos as $a) : ?>
+                    <option value="<?php echo $a->ID; ?>" <?php selected($alojamiento_id, $a->ID); ?>>
+                        <?php echo esc_html($a->post_title); ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
+        </div>
 
-    <div id="tureserva-precios-wrapper" class="tureserva-precios-container">
-        <?php if (!empty($precios)) : ?>
-            <?php foreach ($precios as $index => $precio) : ?>
-                <?php tureserva_render_precio_block($index, $precio, $temporadas); ?>
-            <?php endforeach; ?>
-        <?php else : ?>
-            <?php tureserva_render_precio_block(0, [], $temporadas); ?>
-        <?php endif; ?>
+        <!-- 2. Bloques de Temporada -->
+        <div id="tureserva-season-blocks-container">
+            <?php 
+            if (empty($precios)) {
+                // Bloque vacío por defecto
+                tureserva_render_season_block(0, [], $temporadas);
+            } else {
+                foreach ($precios as $index => $data) {
+                    tureserva_render_season_block($index, $data, $temporadas);
+                }
+            }
+            ?>
+        </div>
+
+        <!-- 3. Botón Añadir Temporada -->
+        <div id="add-season-block-btn" class="tureserva-add-season-btn">
+            <span class="dashicons dashicons-plus"></span> Añadir nuevo precio de temporada
+        </div>
+
     </div>
-
-    <button type="button" id="tureserva-add-variable" class="tureserva-add-variable">
-        + Agregar más precios variables
-    </button>
-
-    <script>
-        /* JS igual al tuyo, sin cambios funcionales */
-    </script>
-
     <?php
 }
 
-
 // ==========================================================
-// 🔁 FUNCIÓN PARA RENDER DE CADA BLOQUE DE PRECIO
+// 🔁 RENDER DE UN BLOQUE DE TEMPORADA
 // ==========================================================
-function tureserva_render_precio_block($index, $precio, $temporadas)
-{
-    $temporada        = $precio['temporada'] ?? '';
-    $adultos          = $precio['adultos'] ?? '';
-    $ninos            = $precio['ninos'] ?? '';
-    $noches           = $precio['noches'] ?? '';
-    $precio_noche     = $precio['precio_noche'] ?? '';
-    $activar_especial = !empty($precio['activar_especial']);
-    $noche_especial   = $precio['noche_especial'] ?? '';
-    $precio_especial  = $precio['precio_especial'] ?? '';
-
+function tureserva_render_season_block($index, $data, $temporadas) {
+    $temporada_id = $data['temporada_id'] ?? '';
+    $precio_base = $data['precio_base'] ?? '';
+    $adultos = $data['adultos'] ?? 1;
+    $ninos = $data['ninos'] ?? 0;
+    $variables = $data['variables'] ?? [];
     ?>
-    <div class="tureserva-precio-item">
-
-        <div class="tureserva-grid">
-
-            <!-- Temporada -->
-            <div class="tureserva-box">
-                <label>Temporada</label>
-                <select name="tureserva_precios_variables[<?php echo $index; ?>][temporada]">
-                    <option value="">Seleccionar temporada</option>
+    <div class="tureserva-season-block" data-index="<?php echo $index; ?>">
+        <div class="tureserva-season-header">
+            <div class="tureserva-season-title">
+                <span class="dashicons dashicons-calendar-alt"></span>
+                <select name="tureserva_precios[<?php echo $index; ?>][temporada_id]" style="border:none; background:transparent; font-weight:600;">
+                    <option value="">-- Seleccionar Temporada --</option>
                     <?php foreach ($temporadas as $t) : ?>
-                        <option value="<?php echo esc_attr($t->post_title); ?>"
-                            <?php selected($temporada, $t->post_title); ?>>
+                        <option value="<?php echo $t->ID; ?>" <?php selected($temporada_id, $t->ID); ?>>
                             <?php echo esc_html($t->post_title); ?>
                         </option>
                     <?php endforeach; ?>
                 </select>
             </div>
+            <div class="tureserva-season-actions">
+                <button type="button" class="btn-icon remove-season-block" title="Eliminar bloque">
+                    <span class="dashicons dashicons-trash"></span>
+                </button>
+            </div>
+        </div>
 
-            <!-- Adultos / Niños -->
-            <div class="tureserva-box">
-                <label>Adultos / Niños</label>
-                <div style="display:flex;gap:10px;">
-                    <input type="number" name="tureserva_precios_variables[<?php echo $index; ?>][adultos]"
-                        value="<?php echo esc_attr($adultos); ?>" placeholder="Adultos">
-                    <input type="number" name="tureserva_precios_variables[<?php echo $index; ?>][ninos]"
-                        value="<?php echo esc_attr($ninos); ?>" placeholder="Niños">
+        <div class="tureserva-season-content">
+            <!-- Grid Principal -->
+            <div class="tureserva-main-grid">
+                <div class="ts-form-group">
+                    <label>Precio Base (por noche)</label>
+                    <input type="number" name="tureserva_precios[<?php echo $index; ?>][precio_base]" value="<?php echo esc_attr($precio_base); ?>" placeholder="0.00">
+                </div>
+                <div class="ts-form-group">
+                    <label>Adultos incluidos</label>
+                    <input type="number" name="tureserva_precios[<?php echo $index; ?>][adultos]" value="<?php echo esc_attr($adultos); ?>">
+                </div>
+                <div class="ts-form-group">
+                    <label>Niños incluidos</label>
+                    <input type="number" name="tureserva_precios[<?php echo $index; ?>][ninos]" value="<?php echo esc_attr($ninos); ?>">
                 </div>
             </div>
 
-            <!-- Noches / Precio noche -->
-            <div class="tureserva-box">
-                <label>Noche y Precio</label>
-                <input type="number" name="tureserva_precios_variables[<?php echo $index; ?>][noches]"
-                    value="<?php echo esc_attr($noches); ?>" placeholder="Noches">
-                <input type="number" name="tureserva_precios_variables[<?php echo $index; ?>][precio_noche]"
-                    value="<?php echo esc_attr($precio_noche); ?>" placeholder="Precio por noche">
+            <!-- Precios Variables -->
+            <div class="tureserva-variable-prices">
+                <div class="tureserva-variable-header">
+                    <h4>Precios Variables (por duración)</h4>
+                    <button type="button" class="btn-add-variable" data-index="<?php echo $index; ?>">
+                        + Agregar precio variable
+                    </button>
+                </div>
+                
+                <div class="tureserva-variable-rows">
+                    <?php if (!empty($variables)) : ?>
+                        <?php foreach ($variables as $vIndex => $var) : ?>
+                            <div class="tureserva-variable-row">
+                                <div class="ts-form-group">
+                                    <label>Desde (Noches)</label>
+                                    <input type="number" name="tureserva_precios[<?php echo $index; ?>][variables][<?php echo $vIndex; ?>][min]" value="<?php echo esc_attr($var['min']); ?>">
+                                </div>
+                                <div class="ts-form-group">
+                                    <label>Hasta (Noches)</label>
+                                    <input type="number" name="tureserva_precios[<?php echo $index; ?>][variables][<?php echo $vIndex; ?>][max]" value="<?php echo esc_attr($var['max']); ?>">
+                                </div>
+                                <div class="ts-form-group">
+                                    <label>Precio por noche</label>
+                                    <input type="number" name="tureserva_precios[<?php echo $index; ?>][variables][<?php echo $vIndex; ?>][price]" value="<?php echo esc_attr($var['price']); ?>">
+                                </div>
+                                <button type="button" class="btn-icon remove-variable" title="Eliminar">
+                                    <span class="dashicons dashicons-trash"></span>
+                                </button>
+                            </div>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
+                </div>
             </div>
-
-            <!-- Precio especial -->
-            <div class="tureserva-especial">
-                <label>
-                    <input type="checkbox"
-                        name="tureserva_precios_variables[<?php echo $index; ?>][activar_especial]"
-                        <?php checked($activar_especial); ?>>
-                    Activar precio especial
-                </label>
-
-                <input type="number" name="tureserva_precios_variables[<?php echo $index; ?>][noche_especial]"
-                    value="<?php echo esc_attr($noche_especial); ?>" placeholder="Noche especial">
-
-                <input type="number" name="tureserva_precios_variables[<?php echo $index; ?>][precio_especial]"
-                    value="<?php echo esc_attr($precio_especial); ?>" placeholder="Precio especial">
-            </div>
-
-            <!-- Botón eliminar -->
-            <button type="button" class="tureserva-delete" title="Eliminar bloque">
-                🗑️
-            </button>
-
         </div>
     </div>
     <?php
 }
 
-
 // ==========================================================
-// 💾 GUARDAR DATOS SANITIZADOS
+// 💾 GUARDAR DATOS (NUEVA ESTRUCTURA)
 // ==========================================================
 function tureserva_save_tarifas_metabox($post_id)
 {
-    if (
-        !isset($_POST['tureserva_tarifas_nonce']) ||
-        !wp_verify_nonce($_POST['tureserva_tarifas_nonce'], 'tureserva_save_tarifas')
-    ) return;
+    if (!isset($_POST['tureserva_tarifas_nonce']) || !wp_verify_nonce($_POST['tureserva_tarifas_nonce'], 'tureserva_save_tarifas')) return;
+    if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) return;
+    if (!current_user_can('edit_post', $post_id)) return;
 
-    $precios = $_POST['tureserva_precios_variables'] ?? [];
-
-    $sanitized = [];
-
-    foreach ($precios as $bloque) {
-        $sanitized[] = [
-            'temporada'        => sanitize_text_field($bloque['temporada'] ?? ''),
-            'adultos'          => intval($bloque['adultos'] ?? 0),
-            'ninos'            => intval($bloque['ninos'] ?? 0),
-            'noches'           => intval($bloque['noches'] ?? 1),
-            'precio_noche'     => floatval($bloque['precio_noche'] ?? 0),
-            'activar_especial' => !empty($bloque['activar_especial']),
-            'noche_especial'   => intval($bloque['noche_especial'] ?? 0),
-            'precio_especial'  => floatval($bloque['precio_especial'] ?? 0),
-        ];
+    // 1. Guardar Alojamiento ID
+    if (isset($_POST['tureserva_alojamiento_id'])) {
+        update_post_meta($post_id, '_tureserva_alojamiento_id', sanitize_text_field($_POST['tureserva_alojamiento_id']));
     }
 
-    update_post_meta($post_id, '_tureserva_precios_variables', $sanitized);
+    // 2. Guardar Precios (Estructura compleja)
+    $precios = $_POST['tureserva_precios'] ?? [];
+    $sanitized_precios = [];
+
+    foreach ($precios as $p) {
+        $bloque = [
+            'temporada_id' => sanitize_text_field($p['temporada_id'] ?? ''),
+            'precio_base'  => floatval($p['precio_base'] ?? 0),
+            'adultos'      => intval($p['adultos'] ?? 1),
+            'ninos'        => intval($p['ninos'] ?? 0),
+            'variables'    => []
+        ];
+
+        if (isset($p['variables']) && is_array($p['variables'])) {
+            foreach ($p['variables'] as $v) {
+                $bloque['variables'][] = [
+                    'min'   => intval($v['min'] ?? 0),
+                    'max'   => intval($v['max'] ?? 0),
+                    'price' => floatval($v['price'] ?? 0),
+                ];
+            }
+        }
+        $sanitized_precios[] = $bloque;
+    }
+
+    update_post_meta($post_id, '_tureserva_precios', $sanitized_precios);
+    
+    // Compatibilidad con la vista de lista (guardar el primer precio base y temporada para mostrar en columnas)
+    if (!empty($sanitized_precios)) {
+        update_post_meta($post_id, '_tureserva_precio_base', $sanitized_precios[0]['precio_base']);
+        update_post_meta($post_id, '_tureserva_temporada_id', $sanitized_precios[0]['temporada_id']);
+    }
 }
-add_action('save_post_tureserva_tarifa', 'tureserva_save_tarifas_metabox');  // ✔ Hook corregido
+add_action('save_post_tureserva_tarifa', 'tureserva_save_tarifas_metabox');

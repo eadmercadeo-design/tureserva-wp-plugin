@@ -90,6 +90,13 @@ function tureserva_init()
         require_once TURESERVA_PATH . 'includes/menu-cron.php';
         require_once TURESERVA_PATH . 'includes/menu-payments.php';
 
+        // Diseños
+        require_once TURESERVA_PATH . 'includes/admin-categorias-design.php';
+        require_once TURESERVA_PATH . 'includes/admin-servicios-design.php'; // 🎨 Diseño Servicios
+        require_once TURESERVA_PATH . 'includes/admin-temporadas-design.php'; // 🎨 Diseño Temporadas
+        require_once TURESERVA_PATH . 'includes/admin-tarifas-design.php'; // 🎨 Diseño Tarifas (Lista)
+        require_once TURESERVA_PATH . 'includes/admin-tarifas-edit-design.php'; // 🎨 Diseño Tarifas (Edición)
+
         // Meta boxes del módulo Alojamiento
         require_once TURESERVA_PATH . 'includes/meta-boxes-alojamiento.php';
 

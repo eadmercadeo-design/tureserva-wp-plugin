@@ -43,7 +43,7 @@ function tureserva_register_temporadas_cpt()
          *     - Atributos
          *     - Temporadas  👈
          */
-        'show_in_menu'      => 'edit.php?post_type=tureserva_alojamiento',
+        'show_in_menu'      => 'edit.php?post_type=trs_alojamiento',
 
         'supports'          => array('title'),
         'menu_position'     => 7,

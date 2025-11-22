@@ -51,7 +51,7 @@ function tureserva_register_atributo_cpt()
         'labels'             => $labels,
         'public'             => false,       // Solo panel admin
         'show_ui'            => true,        // Mostrar editor básico
-        'show_in_menu'       => 'edit.php?post_type=tureserva_alojamiento',
+        'show_in_menu'       => 'edit.php?post_type=trs_alojamiento',
         /**
          * Esto inserta el CPT dentro del menú:
          *

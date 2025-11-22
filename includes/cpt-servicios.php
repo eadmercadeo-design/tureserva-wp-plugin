@@ -47,7 +47,7 @@ function tureserva_register_servicio_cpt()
          *      - Tarifas
          *      - Atributos
          */
-        'show_in_menu'      => 'edit.php?post_type=tureserva_alojamiento',
+        'show_in_menu'      => 'edit.php?post_type=trs_alojamiento',
 
         'menu_icon'         => 'dashicons-hammer',
         'supports'          => array('title', 'editor', 'thumbnail'),
