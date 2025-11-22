@@ -8,44 +8,71 @@ document.addEventListener('DOMContentLoaded', function () {
         locale: 'es',
         height: 'auto',
         firstDay: 1,
+        resourceAreaWidth: '20%',
+        resourceAreaHeaderContent: 'Alojamientos',
         headerToolbar: {
             left: 'prev,next today',
             center: 'title',
             right: 'resourceTimelineDay,resourceTimelineWeek,resourceTimelineMonth'
         },
+        // 🏨 Cargar Recursos (Alojamientos)
         resources: function (fetchInfo, successCallback, failureCallback) {
-            fetch(`${tureservaCalendar.ajax_url}?action=tureserva_get_resources&security=${tureservaCalendar.nonce}`)
+            fetch(`${tureservaTimeline.ajax_url}?action=tureserva_get_resources&security=${tureservaTimeline.nonce}`)
                 .then(res => res.json())
                 .then(response => {
-                    if (response.success) successCallback(response.data);
-                    else failureCallback();
+                    if (response.success) {
+                        successCallback(response.data);
+                    } else {
+                        console.error('Error cargando recursos:', response);
+                        failureCallback();
+                    }
                 })
-                .catch(err => failureCallback(err));
+                .catch(err => {
+                    console.error('Error de red (recursos):', err);
+                    failureCallback(err);
+                });
         },
+        // 📅 Cargar Eventos (Reservas)
         events: function (fetchInfo, successCallback, failureCallback) {
             const params = new URLSearchParams({
                 action: 'tureserva_get_calendar',
-                security: tureservaCalendar.nonce,
+                security: tureservaTimeline.nonce,
                 year: new Date().getFullYear()
             });
-            fetch(`${tureservaCalendar.ajax_url}?${params}`)
+            fetch(`${tureservaTimeline.ajax_url}?${params}`)
                 .then(res => res.json())
                 .then(response => {
-                    if (response.success) successCallback(response.data);
-                    else failureCallback();
+                    if (response.success) {
+                        // Mapear eventos para asegurar que tengan resourceId
+                        const events = response.data.map(evt => ({
+                            ...evt,
+                            resourceId: evt.extendedProps.alojamiento_id || null // Asegurar que el backend envíe esto o mapearlo
+                        }));
+                        successCallback(events);
+                    } else {
+                        console.error('Error cargando eventos:', response);
+                        failureCallback();
+                    }
                 })
-                .catch(err => failureCallback(err));
+                .catch(err => {
+                    console.error('Error de red (eventos):', err);
+                    failureCallback(err);
+                });
         },
         eventDidMount: function (info) {
             const e = info.event.extendedProps;
             tippy(info.el, {
                 content: `
-                    <strong>${e.cliente || 'Sin cliente'}</strong><br>
-                    🏨 ${e.alojamiento}<br>
-                    <em>${e.estado || ''}</em>
+                    <div style="text-align:left;">
+                        <strong>${e.cliente || 'Sin cliente'}</strong><br>
+                        🏨 ${e.alojamiento || 'Sin alojamiento'}<br>
+                        <span class="ts-badge ts-${e.estado}">${e.estado || ''}</span>
+                        ${e.motivo ? '<br><small>' + e.motivo + '</small>' : ''}
+                    </div>
                 `,
                 allowHTML: true,
-                theme: 'light-border'
+                theme: 'light-border',
+                interactive: true
             });
         },
         eventClick: function (info) {

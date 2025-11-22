@@ -1,16 +1,137 @@
-#tureserva-calendar .fc-daygrid-event {
-    border-radius: 6px;
-    font-size: 13px;
-    font-weight: 500;
-    padding: 3px 4px;
-    color: #fff;
+/* =========================================
+   CALENDARIO PREMIUM — TURESERVA
+   ========================================= */
+
+/* 🟢 Contenedor Principal */
+#tureserva-calendar,
+#tureserva-calendar-timeline {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+    padding: 20px;
+    overflow: hidden;
 }
 
-#tureserva-calendar .fc-toolbar-title {
+/* 🗓️ Toolbar (Botones y Título) */
+.fc-header-toolbar {
+    margin-bottom: 24px !important;
+}
+
+.fc-toolbar-title {
+    font-size: 1.5rem !important;
+    font-weight: 700 !important;
+    color: #1e293b;
+    letter-spacing: -0.025em;
+}
+
+.fc-button {
+    background-color: #fff !important;
+    border: 1px solid #cbd5e1 !important;
+    color: #475569 !important;
+    font-weight: 600 !important;
+    text-transform: capitalize !important;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05) !important;
+    transition: all 0.2s ease !important;
+    border-radius: 6px !important;
+    padding: 8px 16px !important;
+}
+
+.fc-button:hover {
+    background-color: #f8fafc !important;
+    border-color: #94a3b8 !important;
+    color: #0f172a !important;
+}
+
+.fc-button-active {
+    background-color: #eff6ff !important;
+    border-color: #3b82f6 !important;
+    color: #2563eb !important;
+    box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.06) !important;
+}
+
+.fc-button-primary:not(:disabled).fc-button-active,
+.fc-button-primary:not(:disabled):active {
+    background-color: #eff6ff !important;
+    border-color: #3b82f6 !important;
+    color: #2563eb !important;
+}
+
+/* 📅 Eventos (Reservas) */
+.fc-event {
+    border: none !important;
+    border-radius: 6px !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    transition: transform 0.1s ease, box-shadow 0.1s ease;
+    cursor: pointer;
+    padding: 2px 4px;
+}
+
+.fc-event:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    filter: brightness(1.05);
+}
+
+.fc-event-title {
+    font-weight: 600 !important;
+    font-size: 0.85rem !important;
+}
+
+.fc-daygrid-event-dot {
+    border-color: currentColor !important;
+}
+
+/* 🧱 Vista Timeline (Recursos) */
+.fc-resource-area {
+    background-color: #f8fafc;
+}
+
+.fc-datagrid-cell-main {
+    color: #334155;
     font-weight: 600;
-    color: #2c3e50;
+    font-size: 0.9rem;
 }
 
-#tureserva-calendar .fc-daygrid-day:hover {
-    background-color: #f5f7fa;
+.fc-timeline-slot-label {
+    color: #64748b;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+/* 🏷️ Badges en Tooltips */
+.ts-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    margin-top: 4px;
+}
+
+.ts-confirmada {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.ts-pendiente {
+    background: #fef9c3;
+    color: #854d0e;
+}
+
+.ts-cancelada {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.ts-bloqueo {
+    background: #f1f5f9;
+    color: #475569;
+}
+
+/* 🎨 Colores de fondo de celdas */
+.fc-day-today {
+    background-color: #f0f9ff !important;
 }

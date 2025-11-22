@@ -13,6 +13,7 @@ if (!defined('ABSPATH')) exit;
 // 📅 ENDPOINT AJAX
 // =======================================================
 add_action('wp_ajax_tureserva_get_calendar', 'tureserva_get_calendar');
+add_action('wp_ajax_tureserva_get_resources', 'tureserva_get_calendar'); // Reutilizamos la misma función
 function tureserva_get_calendar() {
 
     // Permisos
@@ -23,6 +24,28 @@ function tureserva_get_calendar() {
     // 🔒 Validar nonce (puedes comentar estas 3 líneas en local)
     if (!isset($_GET['security']) || !wp_verify_nonce($_GET['security'], 'tureserva_calendar_nonce')) {
         wp_send_json_error('Nonce inválido');
+    }
+
+    // =======================================================
+    // 🏨 ENDPOINT: OBTENER RECURSOS (ALOJAMIENTOS)
+    // =======================================================
+    if (isset($_GET['action']) && $_GET['action'] === 'tureserva_get_resources') {
+        $alojamientos = get_posts([
+            'post_type'      => 'trs_alojamiento',
+            'posts_per_page' => -1,
+            'post_status'    => 'publish',
+            'orderby'        => 'title',
+            'order'          => 'ASC'
+        ]);
+
+        $resources = [];
+        foreach ($alojamientos as $aloj) {
+            $resources[] = [
+                'id'    => (string) $aloj->ID,
+                'title' => $aloj->post_title
+            ];
+        }
+        wp_send_json_success($resources);
     }
 
     $year        = isset($_GET['year']) ? intval($_GET['year']) : date('Y');
@@ -77,19 +100,21 @@ function tureserva_get_calendar() {
         };
 
         $eventos[] = [
-            'id'    => $reserva->ID,
-            'title' => "🛏️ {$aloj_tit} — {$cliente}",
-            'start' => $check_in,
-            'end'   => $check_out,
-            'color' => $color,
-            'textColor' => '#fff',
-            'borderColor' => $color,
+            'id'         => $reserva->ID,
+            'resourceId' => (string) $aloj_id, // 🔑 CLAVE para vista Timeline
+            'title'      => "{$cliente}",
+            'start'      => $check_in,
+            'end'        => $check_out,
+            'color'      => $color,
+            'textColor'  => '#fff',
+            'borderColor'=> $color,
             'extendedProps' => [
-                'estado'      => ucfirst($estado_res),
-                'cliente'     => $cliente,
-                'alojamiento' => $aloj_tit,
-                'tipo'        => 'reserva',
-                'link'        => get_edit_post_link($reserva->ID)
+                'estado'         => ucfirst($estado_res),
+                'cliente'        => $cliente,
+                'alojamiento'    => $aloj_tit,
+                'alojamiento_id' => $aloj_id,
+                'tipo'           => 'reserva',
+                'link'           => get_edit_post_link($reserva->ID)
             ],
         ];
     }
@@ -116,13 +141,14 @@ function tureserva_get_calendar() {
             if (empty($inicio) || empty($fin)) continue;
 
             $eventos[] = [
-                'id'    => uniqid('bloqueo_'),
-                'title' => "⛔ {$aloj->post_title} — {$motivo}",
-                'start' => $inicio,
-                'end'   => $fin,
-                'color' => '#95a5a6',
-                'textColor' => '#fff',
-                'borderColor' => '#95a5a6',
+                'id'         => uniqid('bloqueo_'),
+                'resourceId' => (string) $aloj->ID, // 🔑 CLAVE para vista Timeline
+                'title'      => "⛔ {$motivo}",
+                'start'      => $inicio,
+                'end'        => $fin,
+                'color'      => '#95a5a6',
+                'textColor'  => '#fff',
+                'borderColor'=> '#95a5a6',
                 'extendedProps' => [
                     'motivo'      => $motivo,
                     'tipo'        => 'bloqueo',
