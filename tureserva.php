@@ -96,6 +96,7 @@ function tureserva_init()
         require_once TURESERVA_PATH . 'includes/admin-temporadas-design.php'; // 🎨 Diseño Temporadas
         require_once TURESERVA_PATH . 'includes/admin-tarifas-design.php'; // 🎨 Diseño Tarifas (Lista)
         require_once TURESERVA_PATH . 'includes/admin-tarifas-edit-design.php'; // 🎨 Diseño Tarifas (Edición)
+        require_once TURESERVA_PATH . 'includes/admin-ajustes-design.php'; // 🎨 Diseño Ajustes
 
         // Meta boxes del módulo Alojamiento
         require_once TURESERVA_PATH . 'includes/meta-boxes-alojamiento.php';

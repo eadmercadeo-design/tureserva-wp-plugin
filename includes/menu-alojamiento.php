@@ -86,11 +86,11 @@ function tureserva_admin_menu_alojamiento()
     // [11] Ajustes
     add_submenu_page(
         'edit.php?post_type=trs_alojamiento',
-        __('Ajustes de Alojamiento', 'tureserva'),
+        __('Ajustes generales', 'tureserva'),
         __('Ajustes', 'tureserva'),
         'manage_options',
-        'tureserva-ajustes-alojamiento',
-        'tureserva_render_ajustes_alojamiento_page'
+        'tureserva-ajustes-generales',
+        'tureserva_render_ajustes_generales_page'
     );
 
     // [12] Idioma (Placeholder si no existe la función)
@@ -137,7 +137,7 @@ function tureserva_admin_menu_alojamiento()
             'edit.php?post_type=tureserva_tarifa',                                        // 8. Tarifas
             'tureserva-comodidades',                                                      // 9. Comodidades
             'tureserva-generar-alojamientos',                                             // 10. Generar
-            'tureserva-ajustes-alojamiento',                                              // 11. Ajustes
+            'tureserva-ajustes-generales',                                                // 11. Ajustes
             'tureserva-idioma-alojamiento',                                               // 12. Idioma
             'tureserva-codigos-cortos'                                                    // 13. Códigos cortos
         ];

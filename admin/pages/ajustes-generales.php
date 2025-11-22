@@ -1,326 +1,275 @@
 <?php
 /**
- * ==========================================================
- * ADMIN PAGE: Ajustes Generales — TuReserva
- * ==========================================================
- * Panel central con pestañas estilo MotoPress.
- * Guarda opciones globales: páginas, divisa, horarios, email, pagos y licencia.
- * ==========================================================
+ * ADMIN PAGE: Ajustes Generales — TuReserva (Rediseño Moderno)
  */
 
 if (!defined('ABSPATH')) exit;
 
 // =======================================================
-// 🔧 Registrar submenú bajo "Alojamiento"
+// 🔧 Registrar submenú
 // =======================================================
-add_action('admin_menu', function() {
-    add_submenu_page(
-        'edit.php?post_type=alojamiento',
-        __('Ajustes generales', 'tureserva'),
-        __('Ajustes', 'tureserva'),
-        'manage_options',
-        'tureserva-ajustes-generales',
-        'tureserva_render_ajustes_generales_page'
-    );
-});
+// (Manejado centralizadamente en includes/menu-alojamiento.php)
+
+// =======================================================
+// 🔧 Función auxiliar para renderizar Cards (Compartida)
+// =======================================================
+if (!function_exists('tureserva_render_email_card')) {
+    function tureserva_render_email_card($id_base, $title, $icon, $desc, $default_subject = '', $default_body = '', $extra_fields = '') {
+        $disable = get_option($id_base . '_disable', 0);
+        $subject = get_option($id_base . '_subject', $default_subject);
+        $header  = get_option($id_base . '_header', get_bloginfo('name'));
+        $body    = get_option($id_base . '_body', $default_body);
+        $recipients = get_option($id_base . '_recipients', ''); // Para cliente suele ser dinámico, pero dejamos el campo por si acaso se quiere copia oculta
+
+        ?>
+        <div class="tureserva-card">
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #f0f0f1; padding-bottom:15px; margin-bottom:20px;">
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <span class="dashicons <?php echo esc_attr($icon); ?>" style="font-size:24px; color:#2271b1; height:24px; width:24px;"></span>
+                    <div>
+                        <h3 style="margin:0; font-size:16px;"><?php echo esc_html($title); ?></h3>
+                        <p style="margin:0; font-size:12px; color:#666;"><?php echo esc_html($desc); ?></p>
+                    </div>
+                </div>
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <span style="font-size:12px; font-weight:600; color:#50575e;">Desactivar notificación</span>
+                    <label class="ts-toggle">
+                        <input type="checkbox" name="<?php echo esc_attr($id_base); ?>_disable" value="1" <?php checked($disable, 1); ?>>
+                        <span class="ts-slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <?php if ($extra_fields) : ?>
+                <div style="background:#f9f9f9; padding:15px; border-radius:5px; margin-bottom:15px; border:1px solid #eee;">
+                    <?php echo $extra_fields; ?>
+                </div>
+            <?php endif; ?>
+
+            <div class="tureserva-grid-2">
+                <div class="ts-form-group">
+                    <label>Asunto del correo</label>
+                    <input type="text" name="<?php echo esc_attr($id_base); ?>_subject" value="<?php echo esc_attr($subject); ?>" placeholder="Ej: Información importante">
+                </div>
+                <div class="ts-form-group">
+                    <label>Encabezado del correo</label>
+                    <input type="text" name="<?php echo esc_attr($id_base); ?>_header" value="<?php echo esc_attr($header); ?>" placeholder="Ej: Detalles de tu reserva">
+                </div>
+            </div>
+
+            <div class="ts-form-group">
+                <label>Plantilla del correo</label>
+                <div style="border:1px solid #ccc; border-radius:4px; overflow:hidden;">
+                    <?php wp_editor($body, $id_base . '_body', ['textarea_name' => $id_base . '_body', 'textarea_rows' => 10, 'media_buttons' => true, 'teeny' => true]); ?>
+                </div>
+            </div>
+        </div>
+        <?php
+    }
+}
 
 // =======================================================
 // 🧾 Renderizado principal
 // =======================================================
 function tureserva_render_ajustes_generales_page() {
-
-    // 💾 Guardar opciones globales (General)
-    if (isset($_POST['tureserva_guardar_general']) && isset($_POST['tureserva_ajustes_nonce']) && wp_verify_nonce($_POST['tureserva_ajustes_nonce'], 'tureserva_ajustes_action')) {
-        if (isset($_POST['pagina_busqueda'])) update_option('tureserva_pagina_busqueda', intval($_POST['pagina_busqueda']));
-        if (isset($_POST['pagina_pago'])) update_option('tureserva_pagina_pago', intval($_POST['pagina_pago']));
-        if (isset($_POST['checkin'])) update_option('tureserva_checkin', sanitize_text_field($_POST['checkin']));
-        if (isset($_POST['checkout'])) update_option('tureserva_checkout', sanitize_text_field($_POST['checkout']));
-        if (isset($_POST['divisa'])) update_option('tureserva_divisa', sanitize_text_field($_POST['divisa']));
-        if (isset($_POST['formato_fecha'])) update_option('tureserva_formato_fecha', sanitize_text_field($_POST['formato_fecha']));
-        if (isset($_POST['formato_hora'])) update_option('tureserva_formato_hora', sanitize_text_field($_POST['formato_hora']));
-        echo '<div class="updated notice is-dismissible"><p>' . __('✅ Ajustes guardados correctamente.', 'tureserva') . '</p></div>';
-    }
-
-    // 💾 Guardar opciones de pagos (WooCommerce)
-    if (isset($_POST['tureserva_pago_woo_enable']) && isset($_POST['tureserva_ajustes_nonce']) && wp_verify_nonce($_POST['tureserva_ajustes_nonce'], 'tureserva_ajustes_action')) {
-        update_option('tureserva_pago_woo_enable', 1);
-    } elseif (isset($_POST['tureserva_ajustes_nonce']) && wp_verify_nonce($_POST['tureserva_ajustes_nonce'], 'tureserva_ajustes_action')) {
-        update_option('tureserva_pago_woo_enable', 0);
-    }
-
-    // 📄 Obtener valores actuales
+    
+    // Obtener páginas para selectores
     $paginas = get_pages();
-    $pagina_busqueda = get_option('tureserva_pagina_busqueda', 0);
-    $pagina_pago = get_option('tureserva_pagina_pago', 0);
-    $checkin = get_option('tureserva_checkin', '14:00');
-    $checkout = get_option('tureserva_checkout', '12:00');
-    $divisa = get_option('tureserva_divisa', 'USD');
-    $formato_fecha = get_option('tureserva_formato_fecha', 'd/m/Y');
-    $formato_hora = get_option('tureserva_formato_hora', 'H:i');
-    ?>
-
-    <div class="wrap tureserva-ajustes">
-        <h1>
-            <span class="dashicons dashicons-admin-generic" style="color:#2271b1;margin-right:8px;"></span>
-            <?php _e('Ajustes generales', 'tureserva'); ?>
-        </h1>
-
-        <style>
-            .nav-tab-wrapper { margin-top: 20px; }
-            .tureserva-card {
-                background: #fff;
-                padding: 20px;
-                border-radius: 8px;
-                box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-                margin-top: 10px;
-                max-width: 950px;
+    
+    // Guardar Ajustes
+    if (isset($_POST['tureserva_ajustes_nonce']) && wp_verify_nonce($_POST['tureserva_ajustes_nonce'], 'tureserva_ajustes_action')) {
+        
+        // 1. Guardar opciones genéricas (tureserva_*)
+        foreach ($_POST as $key => $value) {
+            if (strpos($key, 'tureserva_') === 0) {
+                // Si es array, guardar tal cual, si no, sanitizar
+                $val = is_array($value) ? $value : wp_kses_post($value);
+                update_option($key, $val);
             }
-            .form-table th { width: 240px; vertical-align: top; }
-        </style>
+        }
 
-        <!-- 📑 PESTAÑAS PRINCIPALES -->
-        <h2 class="nav-tab-wrapper">
-            <a href="#general" class="nav-tab nav-tab-active"><?php _e('General', 'tureserva'); ?></a>
-            <a href="#email" class="nav-tab"><?php _e('Emails', 'tureserva'); ?></a>
-            <a href="#pagos" class="nav-tab"><?php _e('Pagos', 'tureserva'); ?></a>
-            <a href="#licencia" class="nav-tab"><?php _e('Licencia', 'tureserva'); ?></a>
-        </h2>
+        // 2. Manejo de Checkboxes (que no envían valor si están desmarcados)
+        $checkboxes = [
+            'tureserva_mostrar_precios_bajos',
+            'tureserva_email_admin_pending_disable',
+            'tureserva_email_admin_approved_disable',
+            'tureserva_email_admin_payment_disable',
+            'tureserva_email_admin_cancel_disable',
+            'tureserva_email_client_confirmation_disable',
+            'tureserva_email_client_cancel_disable',
+            'tureserva_email_client_pre_arrival_disable',
+            'tureserva_email_client_location_disable',
+            'tureserva_payment_test_enable',
+            'tureserva_payment_arrival_enable',
+            'tureserva_payment_bank_enable',
+            'tureserva_payment_paypal_enable',
+            'tureserva_payment_paypal_sandbox',
+            'tureserva_payment_stripe_enable',
+            'tureserva_payment_stripe_testmode',
+            'tureserva_payment_wc_enable'
+        ];
+        foreach ($checkboxes as $cb) {
+            if (!isset($_POST[$cb])) update_option($cb, 0);
+        }
 
-        <form method="post">
+        echo '<div class="notice notice-success is-dismissible"><p>✅ Ajustes guardados correctamente.</p></div>';
+    }
+
+    ?>
+    <div class="wrap tureserva-settings-wrap">
+        
+        <div class="tureserva-header">
+            <h1>Ajustes de TuReserva</h1>
+            <button class="ts-btn-primary" onclick="document.getElementById('main-settings-form').submit();">Guardar Cambios</button>
+        </div>
+
+        <!-- TABS NAV -->
+        <div class="tureserva-tabs-nav">
+            <a href="#tab-general" class="tureserva-tab-link active">General</a>
+            <a href="#tab-email-admin" class="tureserva-tab-link">Email Administrador</a>
+            <a href="#tab-email-cliente" class="tureserva-tab-link">Email Cliente</a>
+            <a href="#tab-pagos" class="tureserva-tab-link">Pasarela de Pago</a>
+            <a href="#tab-licencia" class="tureserva-tab-link">Licencia</a>
+        </div>
+
+        <form method="post" id="main-settings-form">
             <?php wp_nonce_field('tureserva_ajustes_action', 'tureserva_ajustes_nonce'); ?>
 
-            <!-- ======================================================= -->
-            <!-- 🏠 TAB GENERAL -->
-            <!-- ======================================================= -->
-            <div id="general" class="tureserva-card tab-section" style="display:block;">
-                <h2><?php _e('Páginas principales', 'tureserva'); ?></h2>
-                <table class="form-table">
-                    <tr>
-                        <th><label for="pagina_busqueda"><?php _e('Página de resultados de búsqueda', 'tureserva'); ?></label></th>
-                        <td>
-                            <select id="pagina_busqueda" name="pagina_busqueda">
-                                <option value="0"><?php _e('— Seleccione una página —', 'tureserva'); ?></option>
-                                <?php foreach ($paginas as $p) : ?>
-                                    <option value="<?php echo $p->ID; ?>" <?php selected($pagina_busqueda, $p->ID); ?>>
-                                        <?php echo esc_html($p->post_title); ?>
-                                    </option>
-                                <?php endforeach; ?>
+            <!-- 🔵 TAB GENERAL -->
+            <div id="tab-general" class="tureserva-tab-content active">
+                
+                <!-- Bloque: Formularios y Páginas -->
+                <div class="tureserva-card">
+                    <h3>Formularios y páginas</h3>
+                    <div class="tureserva-grid-2">
+                        <div class="ts-form-group">
+                            <label>Página de resultados de búsqueda</label>
+                            <select name="tureserva_pagina_busqueda">
+                                <option value="">-- Seleccionar --</option>
+                                <?php foreach($paginas as $p) echo "<option value='{$p->ID}' " . selected(get_option('tureserva_pagina_busqueda'), $p->ID, false) . ">{$p->post_title}</option>"; ?>
                             </select>
-                        </td>
-                    </tr>
-                    <tr>
-                        <th><label for="pagina_pago"><?php _e('Página de pago', 'tureserva'); ?></label></th>
-                        <td>
-                            <select id="pagina_pago" name="pagina_pago">
-                                <option value="0"><?php _e('— Seleccione una página —', 'tureserva'); ?></option>
-                                <?php foreach ($paginas as $p) : ?>
-                                    <option value="<?php echo $p->ID; ?>" <?php selected($pagina_pago, $p->ID); ?>>
-                                        <?php echo esc_html($p->post_title); ?>
-                                    </option>
-                                <?php endforeach; ?>
+                        </div>
+                        <div class="ts-form-group">
+                            <label>Página de pago (Checkout)</label>
+                            <select name="tureserva_pagina_pago">
+                                <option value="">-- Seleccionar --</option>
+                                <?php foreach($paginas as $p) echo "<option value='{$p->ID}' " . selected(get_option('tureserva_pagina_pago'), $p->ID, false) . ">{$p->post_title}</option>"; ?>
                             </select>
-                        </td>
-                    </tr>
-                </table>
-
-                <h2><?php _e('Horarios estándar', 'tureserva'); ?></h2>
-                <table class="form-table">
-                    <tr>
-                        <th><label for="checkin"><?php _e('Hora de Check-in', 'tureserva'); ?></label></th>
-                        <td><input type="time" name="checkin" value="<?php echo esc_attr($checkin); ?>"></td>
-                    </tr>
-                    <tr>
-                        <th><label for="checkout"><?php _e('Hora de Check-out', 'tureserva'); ?></label></th>
-                        <td><input type="time" name="checkout" value="<?php echo esc_attr($checkout); ?>"></td>
-                    </tr>
-                </table>
-
-                <h2><?php _e('Formato regional', 'tureserva'); ?></h2>
-                <table class="form-table">
-                    <tr>
-                        <th><label for="divisa"><?php _e('Divisa por defecto', 'tureserva'); ?></label></th>
-                        <td>
-                            <select id="divisa" name="divisa">
-                                <option value="USD" <?php selected($divisa, 'USD'); ?>>USD – Dólar estadounidense</option>
-                                <option value="EUR" <?php selected($divisa, 'EUR'); ?>>EUR – Euro</option>
-                                <option value="COP" <?php selected($divisa, 'COP'); ?>>COP – Peso colombiano</option>
-                                <option value="PAB" <?php selected($divisa, 'PAB'); ?>>PAB – Balboa panameño</option>
+                        </div>
+                        <div class="ts-form-group">
+                            <label>Términos y condiciones</label>
+                            <select name="tureserva_pagina_terminos">
+                                <option value="">-- Seleccionar --</option>
+                                <?php foreach($paginas as $p) echo "<option value='{$p->ID}' " . selected(get_option('tureserva_pagina_terminos'), $p->ID, false) . ">{$p->post_title}</option>"; ?>
                             </select>
-                        </td>
-                    </tr>
-                    <tr>
-                        <th><label for="formato_fecha"><?php _e('Formato de fecha', 'tureserva'); ?></label></th>
-                        <td><input type="text" name="formato_fecha" value="<?php echo esc_attr($formato_fecha); ?>" placeholder="d/m/Y"></td>
-                    </tr>
-                    <tr>
-                        <th><label for="formato_hora"><?php _e('Formato de hora', 'tureserva'); ?></label></th>
-                        <td><input type="text" name="formato_hora" value="<?php echo esc_attr($formato_hora); ?>" placeholder="H:i"></td>
-                    </tr>
-                </table>
-
-                <p class="submit">
-                    <?php submit_button(__('Guardar cambios', 'tureserva'), 'primary', 'tureserva_guardar_general', false); ?>
-                </p>
-            </div>
-
-            <!-- ======================================================= -->
-            <!-- 📧 TAB EMAILS (con subpestañas) -->
-            <!-- ======================================================= -->
-            <div id="email" class="tureserva-card tab-section" style="display:none;">
-                <style>
-                    .tureserva-subtabs { margin-bottom: 20px; border-bottom: 1px solid #ccc; }
-                    .tureserva-subtabs a {
-                        display:inline-block; padding:6px 14px; text-decoration:none;
-                        border:1px solid #ccc; border-bottom:none; margin-right:4px;
-                        background:#f1f1f1; color:#333; border-radius:4px 4px 0 0;
-                        font-weight:600;
-                    }
-                    .tureserva-subtabs a.active { background:#fff; border-bottom:1px solid #fff; }
-                    .email-subtab { display:none; }
-                </style>
-
-                <div class="tureserva-subtabs">
-                    <a href="#emails-admin" class="subtab-link active"><?php _e('Emails del admin', 'tureserva'); ?></a>
-                    <a href="#emails-cliente" class="subtab-link"><?php _e('Emails del cliente', 'tureserva'); ?></a>
-                </div>
-
-                <div id="emails-admin" class="email-subtab" style="display:block;">
-                    <?php include TURESERVA_PATH . 'admin/pages/partials/emails/admin.php'; ?>
-                </div>
-                <div id="emails-cliente" class="email-subtab">
-                    <?php include TURESERVA_PATH . 'admin/pages/partials/emails/cliente.php'; ?>
-                </div>
-            </div>
-
-            <!-- Script para subpestañas de emails -->
-            <script>
-            document.addEventListener('DOMContentLoaded', function() {
-                const emailTabs = document.querySelectorAll('#email .subtab-link');
-                const emailSections = document.querySelectorAll('#email .email-subtab');
-                if (emailTabs.length && emailSections.length) {
-                    emailTabs.forEach(tab => {
-                        tab.addEventListener('click', e => {
-                            e.preventDefault();
-                            emailTabs.forEach(t => t.classList.remove('active'));
-                            emailSections.forEach(s => s.style.display = 'none');
-                            tab.classList.add('active');
-                            const target = document.querySelector(tab.getAttribute('href'));
-                            if (target) target.style.display = 'block';
-                        });
-                    });
-                }
-            });
-            </script>
-
-            <!-- ======================================================= -->
-            <!-- 💳 TAB PAGOS (con subpestañas) -->
-            <!-- ======================================================= -->
-            <div id="pagos" class="tureserva-card tab-section" style="display:none;">
-                <style>
-                    .tureserva-subtabs { margin-bottom: 20px; border-bottom: 1px solid #ccc; }
-                    .tureserva-subtabs a {
-                        display:inline-block; padding:6px 14px; text-decoration:none;
-                        border:1px solid #ccc; border-bottom:none; margin-right:4px;
-                        background:#f1f1f1; color:#333; border-radius:4px 4px 0 0;
-                        font-weight:600;
-                    }
-                    .tureserva-subtabs a.active { background:#fff; border-bottom:1px solid #fff; }
-                    .pago-subtab { display:none; }
-                </style>
-
-                <div class="tureserva-subtabs">
-                    <a href="#pago-configuracion" class="pago-link active"><?php _e('Configuración Global', 'tureserva'); ?></a>
-                    <a href="#pago-probar" class="pago-link"><?php _e('Probar pago', 'tureserva'); ?></a>
-                    <a href="#pago-stripe" class="pago-link"><?php _e('Stripe', 'tureserva'); ?></a>
-                    <a href="#pago-paypal" class="pago-link"><?php _e('PayPal', 'tureserva'); ?></a>
-                    <a href="#pago-transferencia" class="pago-link"><?php _e('Transferencia', 'tureserva'); ?></a>
-                    <a href="#pago-manual" class="pago-link"><?php _e('Manual / Efectivo', 'tureserva'); ?></a>
-                    <?php if (is_plugin_active('woocommerce/woocommerce.php')) : ?>
-                        <a href="#pago-woocommerce" class="pago-link"><?php _e('WooCommerce', 'tureserva'); ?></a>
-                    <?php endif; ?>
-                </div>
-
-                <div id="pago-configuracion" class="pago-subtab" style="display:block;">
-                    <?php include TURESERVA_PATH . 'admin/pages/partials/pagos/configuracion-global.php'; ?>
-                </div>
-                <div id="pago-probar" class="pago-subtab">
-                    <?php include TURESERVA_PATH . 'admin/pages/partials/pagos/probar-pago.php'; ?>
-                </div>
-                <div id="pago-stripe" class="pago-subtab">
-                    <?php include TURESERVA_PATH . 'admin/pages/partials/pagos/stripe.php'; ?>
-                </div>
-                <div id="pago-paypal" class="pago-subtab">
-                    <?php include TURESERVA_PATH . 'admin/pages/partials/pagos/paypal.php'; ?>
-                </div>
-                <div id="pago-transferencia" class="pago-subtab">
-                    <?php include TURESERVA_PATH . 'admin/pages/partials/pagos/transferencia.php'; ?>
-                </div>
-                <div id="pago-manual" class="pago-subtab">
-                    <?php include TURESERVA_PATH . 'admin/pages/partials/pagos/manual.php'; ?>
-                </div>
-
-                <?php if (is_plugin_active('woocommerce/woocommerce.php')) : ?>
-                    <div id="pago-woocommerce" class="pago-subtab">
-                        <h3>🛒 <?php _e('Integración con WooCommerce', 'tureserva'); ?></h3>
-                        <p><?php _e('WooCommerce está activo. Puede usar sus pasarelas de pago para procesar reservas.', 'tureserva'); ?></p>
-                        <table class="form-table">
-                            <tr>
-                                <th><?php _e('Activar integración', 'tureserva'); ?></th>
-                                <td>
-                                    <input type="checkbox" name="tureserva_pago_woo_enable" value="1" <?php checked(get_option('tureserva_pago_woo_enable'), 1); ?>>
-                                    <?php _e('Permitir pagos con WooCommerce.', 'tureserva'); ?>
-                                </td>
-                            </tr>
-                        </table>
+                        </div>
+                        <div class="ts-form-group">
+                            <label>Página de confirmación de reserva</label>
+                            <select name="tureserva_pagina_confirmacion">
+                                <option value="">-- Seleccionar --</option>
+                                <?php foreach($paginas as $p) echo "<option value='{$p->ID}' " . selected(get_option('tureserva_pagina_confirmacion'), $p->ID, false) . ">{$p->post_title}</option>"; ?>
+                            </select>
+                        </div>
                     </div>
-                <?php endif; ?>
+                </div>
+
+                <!-- Bloque: Comportamiento del Sistema -->
+                <div class="tureserva-card">
+                    <h3>Comportamiento del sistema</h3>
+                    <div class="tureserva-grid-2">
+                        <div class="ts-form-group">
+                            <label>Hora de Entrada (Check-in)</label>
+                            <input type="time" name="tureserva_checkin" value="<?php echo esc_attr(get_option('tureserva_checkin', '14:00')); ?>">
+                        </div>
+                        <div class="ts-form-group">
+                            <label>Hora de Salida (Check-out)</label>
+                            <input type="time" name="tureserva_checkout" value="<?php echo esc_attr(get_option('tureserva_checkout', '11:00')); ?>">
+                        </div>
+                        <div class="ts-form-group">
+                            <label>Tipo de camas</label>
+                            <input type="text" name="tureserva_tipos_camas" value="<?php echo esc_attr(get_option('tureserva_tipos_camas', '')); ?>" placeholder="Ej: King, Queen, Doble, Sencilla">
+                            <span class="ts-helper">Separado por comas</span>
+                        </div>
+                        <div class="ts-form-group">
+                            <label>Mostrar precios más bajos por tipo</label>
+                            <label class="ts-toggle">
+                                <input type="checkbox" name="tureserva_mostrar_precios_bajos" value="1" <?php checked(get_option('tureserva_mostrar_precios_bajos'), 1); ?>>
+                                <span class="ts-slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bloque: Moneda y Formato -->
+                <div class="tureserva-card">
+                    <h3>Moneda y Formato</h3>
+                    <div class="tureserva-grid-2">
+                        <div class="ts-form-group">
+                            <label>Moneda</label>
+                            <select name="tureserva_moneda">
+                                <option value="USD" <?php selected(get_option('tureserva_moneda'), 'USD'); ?>>USD ($)</option>
+                                <option value="EUR" <?php selected(get_option('tureserva_moneda'), 'EUR'); ?>>EUR (€)</option>
+                                <option value="COP" <?php selected(get_option('tureserva_moneda'), 'COP'); ?>>COP ($)</option>
+                            </select>
+                        </div>
+                        <div class="ts-form-group">
+                            <label>Separador decimal</label>
+                            <select name="tureserva_separador_decimal">
+                                <option value="." <?php selected(get_option('tureserva_separador_decimal'), '.'); ?>>Punto (.)</option>
+                                <option value="," <?php selected(get_option('tureserva_separador_decimal'), ','); ?>>Coma (,)</option>
+                            </select>
+                        </div>
+                        <div class="ts-form-group">
+                            <label>Formato de fecha</label>
+                            <input type="text" name="tureserva_formato_fecha" value="<?php echo esc_attr(get_option('tureserva_formato_fecha', 'd/m/Y')); ?>">
+                        </div>
+                        <div class="ts-form-group">
+                            <label>Formato de hora</label>
+                            <input type="text" name="tureserva_formato_hora" value="<?php echo esc_attr(get_option('tureserva_formato_hora', 'H:i')); ?>">
+                        </div>
+                    </div>
+                </div>
+
             </div>
 
-            <!-- Script aislado de subpestañas de pagos -->
-            <script>
-            document.addEventListener('DOMContentLoaded', function() {
-                const payTabs = document.querySelectorAll('#pagos .pago-link');
-                const paySections = document.querySelectorAll('#pagos .pago-subtab');
-                if (payTabs.length && paySections.length) {
-                    payTabs.forEach(tab => {
-                        tab.addEventListener('click', e => {
-                            e.preventDefault();
-                            payTabs.forEach(t => t.classList.remove('active'));
-                            paySections.forEach(s => s.style.display = 'none');
-                            tab.classList.add('active');
-                            const target = document.querySelector(tab.getAttribute('href'));
-                            if (target) target.style.display = 'block';
-                        });
-                    });
-                }
-            });
-            </script>
+            <!-- 🔶 TAB EMAIL ADMIN -->
+            <div id="tab-email-admin" class="tureserva-tab-content">
+                <?php include TURESERVA_PATH . 'admin/pages/partials/emails/admin.php'; ?>
+            </div>
 
-            <!-- ======================================================= -->
+            <!-- 🔶 TAB EMAIL CLIENTE -->
+            <div id="tab-email-cliente" class="tureserva-tab-content">
+                <?php include TURESERVA_PATH . 'admin/pages/partials/emails/client.php'; ?>
+            </div>
+
+            <!-- 🔶 TAB PASARELA DE PAGO -->
+            <div id="tab-pagos" class="tureserva-tab-content">
+                <?php include TURESERVA_PATH . 'admin/pages/partials/payments.php'; ?>
+            </div>
+
             <!-- 🔑 TAB LICENCIA -->
-            <!-- ======================================================= -->
-            <div id="licencia" class="tureserva-card tab-section" style="display:none;">
-                <?php include TURESERVA_PATH . 'admin/pages/partials/licencia.php'; ?>
+            <div id="tab-licencia" class="tureserva-tab-content">
+                <div class="tureserva-card">
+                    <h3>Estado de la Licencia</h3>
+                    <div style="display:flex; align-items:center; gap:15px; margin-bottom:20px;">
+                        <span class="license-status license-valid">
+                            <span class="dashicons dashicons-yes"></span> Licencia Activa
+                        </span>
+                        <span style="color:#666; font-size:13px;">Vence el: <strong>31/12/2025</strong></span>
+                    </div>
+                    
+                    <div class="ts-form-group">
+                        <label>Clave de Licencia</label>
+                        <div style="display:flex; gap:10px;">
+                            <input type="text" name="tureserva_license_key" value="<?php echo esc_attr(get_option('tureserva_license_key', '')); ?>" style="flex:1;">
+                            <button type="button" class="ts-btn-primary">Verificar Licencia</button>
+                        </div>
+                        <span class="ts-helper">Introduce tu clave de compra para recibir actualizaciones automáticas.</span>
+                    </div>
+                </div>
             </div>
 
         </form>
     </div>
-
-    <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const mainTabs = document.querySelectorAll('.nav-tab');
-        const sections = document.querySelectorAll('.tab-section');
-        mainTabs.forEach(tab => {
-            tab.addEventListener('click', e => {
-                e.preventDefault();
-                mainTabs.forEach(t => t.classList.remove('nav-tab-active'));
-                sections.forEach(s => s.style.display = 'none');
-                tab.classList.add('nav-tab-active');
-                const target = document.querySelector(tab.getAttribute('href'));
-                if (target) target.style.display = 'block';
-            });
-        });
-    });
-    </script>
     <?php
 }
