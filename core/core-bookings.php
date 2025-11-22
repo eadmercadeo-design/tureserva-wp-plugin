@@ -88,6 +88,25 @@ function tureserva_crear_reserva( $args = array() ) {
 
     do_action( 'tureserva_reserva_creada', $reserva_id, $data );
 
+    // ===============================
+    // 🔗 CONEXIÓN: Crear Registro de Pago Pendiente
+    // ===============================
+    $pago_id = wp_insert_post([
+        'post_type'   => 'tureserva_pagos',
+        'post_status' => 'publish',
+        'post_title'  => 'Pago (Pendiente) - Reserva #' . $reserva_id,
+        'meta_input'  => [
+            '_tureserva_reserva_id'     => $reserva_id,
+            '_tureserva_cliente_nombre' => sanitize_text_field($data['cliente']['nombre']),
+            '_tureserva_cliente_email'  => sanitize_email($data['cliente']['email']),
+            '_tureserva_pago_estado'    => 'pendiente',
+            '_tureserva_pago_monto'     => floatval($precio['total']),
+            '_tureserva_pago_moneda'    => 'USD', // Moneda por defecto, idealmente configurable
+            '_tureserva_metodo'         => $data['origen'] === 'manual' ? 'Manual' : 'Online',
+            '_tureserva_fecha'          => current_time('mysql'),
+        ]
+    ]);
+
     return $reserva_id;
 }
 
@@ -139,6 +158,33 @@ function tureserva_obtener_detalles_reserva( $reserva_id ) {
 // =======================================================
 function tureserva_cancelar_reserva( $reserva_id ) {
     tureserva_actualizar_estado_reserva( $reserva_id, 'cancelada' );
+    
+    // ===============================
+    // 🔗 CONEXIÓN: Cancelar Reserva -> Cancelar Pago Pendiente
+    // ===============================
+    $pagos = get_posts([
+        'post_type'  => 'tureserva_pagos',
+        'meta_query' => [
+            [
+                'key'   => '_tureserva_reserva_id',
+                'value' => $reserva_id
+            ]
+        ]
+    ]);
+
+    foreach ($pagos as $pago) {
+        $estado_pago = get_post_meta($pago->ID, '_tureserva_pago_estado', true);
+        // Solo cancelamos si está pendiente. Si ya pagó, requeriría reembolso manual.
+        if ($estado_pago === 'pendiente') {
+            update_post_meta($pago->ID, '_tureserva_pago_estado', 'cancelado');
+            
+            // Log
+            $log = get_post_meta($pago->ID, '_tureserva_pago_log', true) ?: [];
+            $log[] = ['fecha' => current_time('mysql'), 'mensaje' => 'Pago cancelado automáticamente por cancelación de reserva.', 'usuario' => 'Sistema'];
+            update_post_meta($pago->ID, '_tureserva_pago_log', $log);
+        }
+    }
+
     do_action( 'tureserva_reserva_cancelada', $reserva_id );
     return true;
 }

@@ -161,3 +161,39 @@ function tureserva_notificar_cambio_estado( $reserva_id, $nuevo_estado ) {
         tureserva_enviar_whatsapp( $cliente['telefono'], $mensaje_txt );
     }
 }
+
+// =======================================================
+// 💸 NOTIFICACIÓN: PAGO RECIBIDO (RECIBO)
+// =======================================================
+add_action( 'tureserva_pago_confirmado', 'tureserva_notificar_pago_recibido', 10, 2 );
+function tureserva_notificar_pago_recibido( $reserva_id, $datos_pago ) {
+
+    $detalles = tureserva_obtener_detalles_reserva( $reserva_id );
+    $cliente  = $detalles['cliente'];
+    $aloj     = get_the_title( $detalles['alojamiento'] );
+    $monto    = number_format_i18n( $datos_pago['amount'] / 100, 2 ); // Stripe envía centavos
+    if (isset($datos_pago['object']) && $datos_pago['object'] !== 'charge') {
+         // Si no es Stripe directo, asumimos monto normal
+         $monto = number_format_i18n( $datos_pago['amount'], 2 );
+    }
+    
+    $moneda   = strtoupper( $datos_pago['currency'] ?? 'USD' );
+    $id_pago  = $datos_pago['id'] ?? 'Manual';
+
+    $asunto = '🧾 Recibo de pago — Reserva #' . $reserva_id;
+    $mensaje = "
+        <h2>¡Pago recibido con éxito!</h2>
+        <p>Hola <strong>{$cliente['nombre']}</strong>,</p>
+        <p>Hemos recibido tu pago correctamente. Aquí tienes los detalles:</p>
+        <ul>
+            <li><strong>Concepto:</strong> Reserva en {$aloj}</li>
+            <li><strong>Monto:</strong> \${$monto} {$moneda}</li>
+            <li><strong>ID Transacción:</strong> {$id_pago}</li>
+            <li><strong>Fecha:</strong> " . date('d/m/Y H:i') . "</li>
+        </ul>
+        <p>Tu reserva está confirmada. ¡Gracias!</p>
+    ";
+
+    tureserva_enviar_email( $cliente['email'], $asunto, $mensaje );
+}
+

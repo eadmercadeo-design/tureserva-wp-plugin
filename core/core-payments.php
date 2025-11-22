@@ -93,6 +93,40 @@ function tureserva_save_pago_data($post_id, $post, $update) {
         'usuario'  => wp_get_current_user()->display_name
     ];
     update_post_meta($post_id, '_tureserva_pago_log', $log);
+
+    // ===============================
+    // 🔗 CONEXIÓN: Pago Completado -> Confirmar Reserva
+    // ===============================
+    $estado_pago = get_post_meta($post_id, '_tureserva_pago_estado', true);
+    $reserva_id  = get_post_meta($post_id, '_tureserva_reserva_id', true);
+
+    if (strtolower($estado_pago) === 'completado' && !empty($reserva_id)) {
+        // Verificar estado actual de la reserva para no sobrescribir si ya está cancelada o algo así
+        $estado_reserva = get_post_meta($reserva_id, '_tureserva_estado', true);
+        
+        if ($estado_reserva !== 'confirmada' && $estado_reserva !== 'cancelada') {
+            if (function_exists('tureserva_actualizar_estado_reserva')) {
+                tureserva_actualizar_estado_reserva($reserva_id, 'confirmada');
+                
+                // Log opcional en el pago
+                $log[] = ['fecha' => current_time('mysql'), 'mensaje' => 'Reserva #' . $reserva_id . ' confirmada automáticamente.', 'usuario' => 'Sistema'];
+                update_post_meta($post_id, '_tureserva_pago_log', $log);
+            }
+        }
+    }
+
+    // ===============================
+    // 🔗 CONEXIÓN: Pago Reembolsado -> Cancelar Reserva
+    // ===============================
+    if (strtolower($estado_pago) === 'reembolsado' && !empty($reserva_id)) {
+        if (function_exists('tureserva_cancelar_reserva')) {
+            tureserva_cancelar_reserva($reserva_id);
+            
+            // Log
+            $log[] = ['fecha' => current_time('mysql'), 'mensaje' => 'Reserva #' . $reserva_id . ' cancelada automáticamente por reembolso.', 'usuario' => 'Sistema'];
+            update_post_meta($post_id, '_tureserva_pago_log', $log);
+        }
+    }
 }
 
 // =======================================================
@@ -140,6 +174,11 @@ if ( ! function_exists( 'tureserva_create_stripe_payment' ) ) {
             update_post_meta( $reserva_id, '_tureserva_pago_id', $body['id'] );
             update_post_meta( $reserva_id, '_tureserva_pago_monto', $amount );
             update_post_meta( $reserva_id, '_tureserva_pago_moneda', $currency );
+
+            // 🔥 AUTO-CONFIRMAR RESERVA
+            if (function_exists('tureserva_actualizar_estado_reserva')) {
+                tureserva_actualizar_estado_reserva($reserva_id, 'confirmada');
+            }
 
             // Acción hook personalizable
             do_action( 'tureserva_pago_confirmado', $reserva_id, $body );

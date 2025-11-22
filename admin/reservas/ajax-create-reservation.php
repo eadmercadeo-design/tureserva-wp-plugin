@@ -16,6 +16,9 @@ function tureserva_create_reservation_handler() {
     $cliente_nombre = sanitize_text_field($_POST['cliente_nombre']);
     $cliente_email  = sanitize_email($_POST['cliente_email']);
     $cliente_tel    = sanitize_text_field($_POST['cliente_telefono']);
+    
+    // Recoger servicios (array de IDs)
+    $servicios = isset($_POST['servicios']) ? array_map('intval', $_POST['servicios']) : [];
 
     if (empty($alojamiento_id) || empty($check_in) || empty($check_out)) {
         wp_send_json_error(__('Datos incompletos.', 'tureserva'));
@@ -38,7 +41,8 @@ function tureserva_create_reservation_handler() {
             'notas'    => 'Reserva creada manualmente desde el admin.'
         ],
         'estado'         => 'confirmada', // Por defecto confirmada si es manual
-        'origen'         => 'manual'
+        'origen'         => 'manual',
+        'servicios'      => $servicios
     ];
 
     // Intentar crear la reserva

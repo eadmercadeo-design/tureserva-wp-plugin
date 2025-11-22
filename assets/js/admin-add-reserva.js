@@ -68,7 +68,13 @@ jQuery(document).ready(function ($) {
             cliente_nombre: $('#cliente_nombre').val(),
             cliente_email: $('#cliente_email').val(),
             cliente_telefono: $('#cliente_telefono').val(),
+            servicios: []
         };
+
+        // Recoger servicios seleccionados
+        $('input[name="servicios[]"]:checked').each(function () {
+            data.servicios.push($(this).val());
+        });
 
         const $btn = $(this).find('button[type="submit"]');
         $btn.prop('disabled', true).text('Procesando...');

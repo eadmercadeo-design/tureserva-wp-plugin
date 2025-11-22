@@ -22,8 +22,8 @@ if (!current_user_can('manage_options')) {
 // 📦 Encolar estilos y scripts de la página
 // ==========================================================
 add_action('admin_enqueue_scripts', function ($hook) {
-    // Carga siempre si la URL contiene el parámetro de nuestra página personalizada
-    if (strpos($_SERVER['REQUEST_URI'], 'tureserva-add-reserva') === false) return;
+    // Carga solo en la página correcta
+    if (!isset($_GET['page']) || $_GET['page'] !== 'tureserva-add-reserva') return;
 
     wp_enqueue_style(
         'tureserva-add-reserva',
@@ -54,7 +54,7 @@ add_action('admin_enqueue_scripts', function ($hook) {
 <div class="wrap tureserva-add-reserva">
     <h1><?php _e('Añadir nueva reserva', 'tureserva'); ?></h1>
 
-    <form id="tureserva-buscar-form" class="tureserva-form">
+    <form id="tureserva-buscar-form" class="tureserva-form" method="post">
         <p class="description">
             <?php _e('Complete los filtros para buscar alojamientos disponibles:', 'tureserva'); ?>
         </p>
@@ -159,6 +159,31 @@ add_action('admin_enqueue_scripts', function ($hook) {
                 <div class="tureserva-field">
                     <label for="cliente_telefono"><?php _e('Teléfono', 'tureserva'); ?></label>
                     <input type="text" id="cliente_telefono" name="cliente_telefono">
+                </div>
+
+                <!-- Servicios Adicionales -->
+                <div class="tureserva-field">
+                    <label><?php _e('Servicios Adicionales', 'tureserva'); ?></label>
+                    <div class="tureserva-modal-services" style="max-height:100px; overflow-y:auto; border:1px solid #ddd; padding:10px; border-radius:4px;">
+                        <?php
+                        $servicios = get_posts([
+                            'post_type' => 'tureserva_servicio',
+                            'posts_per_page' => -1,
+                            'post_status' => 'publish'
+                        ]);
+                        if ($servicios) {
+                            foreach ($servicios as $s) {
+                                $precio = get_post_meta($s->ID, 'tureserva_precio', true);
+                                $precio_txt = $precio ? " ($" . number_format($precio, 2) . ")" : '';
+                                echo '<div style="margin-bottom:5px;">';
+                                echo '<label><input type="checkbox" name="servicios[]" value="' . esc_attr($s->ID) . '"> ' . esc_html($s->post_title) . $precio_txt . '</label>';
+                                echo '</div>';
+                            }
+                        } else {
+                            echo '<small>No hay servicios disponibles.</small>';
+                        }
+                        ?>
+                    </div>
                 </div>
 
                 <div class="tureserva-actions">

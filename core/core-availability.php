@@ -83,7 +83,7 @@ function tureserva_esta_disponible( $alojamiento_id, $check_in, $check_out ) {
 function tureserva_buscar_alojamientos_disponibles( $check_in, $check_out, $args_extra = array() ) {
 
     $defaults = array(
-        'post_type'      => 'tureserva_alojamiento',
+        'post_type'      => 'trs_alojamiento',
         'posts_per_page' => -1,
         'post_status'    => 'publish'
     );

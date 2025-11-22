@@ -100,7 +100,7 @@ function tureserva_get_calendar() {
     $alojamientos = $alojamiento > 0
         ? [get_post($alojamiento)]
         : get_posts([
-            'post_type'      => 'tureserva_alojamiento',
+            'post_type'      => 'trs_alojamiento',
             'posts_per_page' => -1,
             'post_status'    => 'publish'
         ]);
