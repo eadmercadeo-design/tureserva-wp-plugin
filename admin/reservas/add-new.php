@@ -133,6 +133,53 @@ add_action('admin_enqueue_scripts', function ($hook) {
     <div id="tureserva-resultados" class="tureserva-resultados">
         <p class="description"><?php _e('Los resultados aparecerán aquí...', 'tureserva'); ?></p>
     </div>
+    <!-- Modal para datos del cliente -->
+    <div id="tureserva-modal" class="tureserva-modal" style="display:none;">
+        <div class="tureserva-modal-content">
+            <span class="close-modal">&times;</span>
+            <h2><?php _e('Finalizar Reserva', 'tureserva'); ?></h2>
+            <form id="tureserva-crear-reserva-form">
+                <input type="hidden" id="modal_alojamiento_id" name="alojamiento_id">
+                
+                <p>
+                    <label><?php _e('Alojamiento:', 'tureserva'); ?></label>
+                    <strong id="modal_alojamiento_nombre"></strong>
+                </p>
+
+                <div class="tureserva-field">
+                    <label for="cliente_nombre"><?php _e('Nombre del Cliente', 'tureserva'); ?> *</label>
+                    <input type="text" id="cliente_nombre" name="cliente_nombre" required>
+                </div>
+
+                <div class="tureserva-field">
+                    <label for="cliente_email"><?php _e('Email del Cliente', 'tureserva'); ?> *</label>
+                    <input type="email" id="cliente_email" name="cliente_email" required>
+                </div>
+
+                <div class="tureserva-field">
+                    <label for="cliente_telefono"><?php _e('Teléfono', 'tureserva'); ?></label>
+                    <input type="text" id="cliente_telefono" name="cliente_telefono">
+                </div>
+
+                <div class="tureserva-actions">
+                    <button type="submit" class="button button-primary"><?php _e('Confirmar Reserva', 'tureserva'); ?></button>
+                </div>
+            </form>
+        </div>
+    </div>
+
 <style>
+.tureserva-modal {
+    position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.4);
+}
+.tureserva-modal-content {
+    background-color: #fefefe; margin: 15% auto; padding: 20px; border: 1px solid #888; width: 50%; max-width: 500px; border-radius: 8px;
+}
+.close-modal {
+    color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer;
+}
+.close-modal:hover, .close-modal:focus {
+    color: black; text-decoration: none; cursor: pointer;
+}
 </style>
 </div>

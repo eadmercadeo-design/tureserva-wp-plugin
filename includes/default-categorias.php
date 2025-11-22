@@ -3,15 +3,15 @@
  * ==========================================================
  * CATEGORÍAS PREDETERMINADAS — TuReserva
  * ==========================================================
- * Inserta categorías por defecto para el CPT Alojamiento.
+ * Inserta categorías por defecto para la taxonomía
+ * categoria_alojamiento.
  *
- * Cambios realizados:
- * ----------------------------------------------------------
- * ✔ Validación para evitar errores si la taxonomía no existe
- * ✔ term_exists corregido: se debe consultar por “slug”
- * ✔ Comentarios añadidos en cada bloque
- * ✔ Código estandarizado
- * ✔ Preparado para re-ejecución segura (idempotente)
+ * Cambios:
+ * ✔ Validación de taxonomía existente
+ * ✔ Verificación por SLUG (correcto)
+ * ✔ Idempotente (no duplica)
+ * ✔ Registra categorías avanzadas
+ * ✔ Preparado para ejecución en activación del plugin
  * ==========================================================
  */
 
@@ -20,15 +20,11 @@ if (!defined('ABSPATH')) exit;
 // ==========================================================
 // 🏷️ CREAR CATEGORÍAS PREDETERMINADAS DE ALOJAMIENTO
 // ==========================================================
-function tureserva_insert_default_categorias()
-{
-    /**
-     * 🔍 Antes de insertar, verificamos que la taxonomía exista.
-     * Esto evita errores durante la activación del plugin si
-     * la taxonomía no se ha registrado todavía.
-     */
+function tureserva_insert_default_categorias() {
+
+    // Evitar ejecución si la taxonomía aún no existe
     if (!taxonomy_exists('categoria_alojamiento')) {
-        error_log('⚠️ TuReserva: la taxonomía categoria_alojamiento no existe todavía. No se insertaron categorías.');
+        error_log('⚠️ TuReserva: categoria_alojamiento no existe aún. No se insertaron categorías.');
         return;
     }
 
@@ -51,10 +47,6 @@ function tureserva_insert_default_categorias()
 
         list($nombre, $slug, $descripcion) = $cat;
 
-        /**
-         * ✔ Aquí corregimos un error típico:
-         *    term_exists debe verificarse por SLUG, no por nombre.
-         */
         if (!term_exists($slug, 'categoria_alojamiento')) {
 
             $resultado = wp_insert_term($nombre, 'categoria_alojamiento', [
@@ -71,3 +63,8 @@ function tureserva_insert_default_categorias()
     error_log('✔ TuReserva: categorías predeterminadas insertadas correctamente.');
 }
 
+
+// ==========================================================
+// 🧩 HOOK PARA EJECUTAR ESTA FUNCIÓN SOLO AL ACTIVAR EL PLUGIN
+// ==========================================================
+register_activation_hook( TURESERVA_MAIN_FILE, 'tureserva_insert_default_categorias' );

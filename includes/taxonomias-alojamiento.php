@@ -5,7 +5,6 @@
  * - Tipos de alojamiento
  *
  * @package TuReserva
- * @author  Edwin Duarte
  */
 
 if (!defined('ABSPATH')) exit;
@@ -30,7 +29,7 @@ function tureserva_register_taxonomias_alojamiento() {
         'menu_name'         => __('Categorías', 'tureserva'),
     );
 
-    register_taxonomy('categoria_alojamiento', array('tureserva_alojamiento'), array(
+    register_taxonomy('categoria_alojamiento', array('trs_alojamiento'), array(
         'labels'            => $labels_categoria,
         'hierarchical'      => true,
         'show_ui'           => true,
@@ -55,7 +54,7 @@ function tureserva_register_taxonomias_alojamiento() {
         'menu_name'         => __('Tipos de alojamientos', 'tureserva'),
     );
 
-    register_taxonomy('tipo_alojamiento', array('tureserva_alojamiento'), array(
+    register_taxonomy('tipo_alojamiento', array('trs_alojamiento'), array(
         'labels'            => $labels_tipo,
         'hierarchical'      => true,
         'show_ui'           => true,

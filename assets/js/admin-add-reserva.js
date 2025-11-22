@@ -37,8 +37,57 @@ jQuery(document).ready(function ($) {
         });
     });
 
-    $(document).on('click', '.crear-reserva', function () {
-        alert('🧾 Crear reserva para alojamiento ID: ' + $(this).data('id'));
-        // Aquí puedes abrir un modal o redirigir al editor del CPT "reserva"
+    // 🟢 Abrir modal al hacer clic en "Reservar"
+    $(document).on('click', '.crear-reserva', function (e) {
+        e.preventDefault();
+        const id = $(this).data('id');
+        const nombre = $(this).closest('tr').find('td:first').text();
+
+        $('#modal_alojamiento_id').val(id);
+        $('#modal_alojamiento_nombre').text(nombre);
+        $('#tureserva-modal').fadeIn();
+    });
+
+    // 🔴 Cerrar modal
+    $('.close-modal').on('click', function () {
+        $('#tureserva-modal').fadeOut();
+    });
+
+    // 💾 Enviar formulario de creación de reserva
+    $('#tureserva-crear-reserva-form').on('submit', function (e) {
+        e.preventDefault();
+
+        const data = {
+            action: 'tureserva_create_reservation',
+            security: TuReservaAddReserva.nonce,
+            alojamiento_id: $('#modal_alojamiento_id').val(),
+            check_in: $('#check_in').val(),
+            check_out: $('#check_out').val(),
+            adults: $('#adults').val(),
+            children: $('#children').val(),
+            cliente_nombre: $('#cliente_nombre').val(),
+            cliente_email: $('#cliente_email').val(),
+            cliente_telefono: $('#cliente_telefono').val(),
+        };
+
+        const $btn = $(this).find('button[type="submit"]');
+        $btn.prop('disabled', true).text('Procesando...');
+
+        $.post(TuReservaAddReserva.ajax_url, data, function (response) {
+            if (response.success) {
+                alert(response.data.message);
+                window.location.href = response.data.redirect;
+            } else {
+                alert('Error: ' + response.data);
+                $btn.prop('disabled', false).text('Confirmar Reserva');
+            }
+        });
+    });
+
+    // Cerrar modal si se hace clic fuera
+    $(window).on('click', function (e) {
+        if ($(e.target).is('#tureserva-modal')) {
+            $('#tureserva-modal').fadeOut();
+        }
     });
 });

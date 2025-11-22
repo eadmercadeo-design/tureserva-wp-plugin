@@ -20,16 +20,12 @@ define('TURESERVA_MAIN_FILE', __FILE__);
 
 
 // =======================================================
-// 🚀 CARGA TEMPRANA DE CPTs (FIX PRINCIPAL)
+// 🚀 CARGA TEMPRANA DE CPTs (FIJADO)
 // =======================================================
-// ✔ WordPress SOLO registra CPTs si register_post_type()
-//   se ejecuta antes del hook admin_menu.
-// ✔ Ahora cargamos los archivos ANTES y sus hooks "init"
-//   sí se ejecutan correctamente.
-//
-// ❗ NO envuelvas estos require dentro de init.
-// ❗ No uses add_action aquí.
-
+// IMPORTANTE:
+// Los CPTs DEBEN cargarse ANTES de admin_menu.
+// No envolver en init. No envolver en add_action.
+// =======================================================
 require_once TURESERVA_PATH . 'includes/cpt-alojamiento.php';
 require_once TURESERVA_PATH . 'includes/cpt-reservas.php';
 require_once TURESERVA_PATH . 'includes/cpt-tarifas.php';
@@ -47,12 +43,11 @@ require_once TURESERVA_PATH . 'includes/default-categorias.php';
 
 
 // =======================================================
-// 🎨 CSS SOLO PARA PANTALLAS DEL PLUGIN
+// 🎨 CSS SOLO PARA LAS PANTALLAS DEL SISTEMA
 // =======================================================
 add_action('admin_enqueue_scripts', function () {
     $screen = get_current_screen();
     if (isset($screen->id) && strpos($screen->id, 'tureserva') !== false) {
-
         wp_enqueue_style(
             'tureserva-admin-styles',
             TURESERVA_URL . 'assets/css/admin-add-reserva.css?v=6',
@@ -63,35 +58,7 @@ add_action('admin_enqueue_scripts', function () {
 });
 
 
-// =======================================================
-// 🧭 MENÚS ADMIN (DESPUÉS DE QUE EXISTEN LOS CPTs)
-// =======================================================
-function tureserva_load_admin_menus()
-{
-    // Si los CPT aún no existen, no cargamos los menús
-    if (
-        !post_type_exists('tureserva_alojamiento') ||
-        !post_type_exists('tureserva_reserva')
-    ) {
-        return;
-    }
 
-    require_once TURESERVA_PATH . 'includes/menu-alojamiento.php';
-    require_once TURESERVA_PATH . 'includes/menu-calendario.php';
-    require_once TURESERVA_PATH . 'includes/menu-reservas.php';
-    require_once TURESERVA_PATH . 'includes/menu-notificaciones.php';
-    require_once TURESERVA_PATH . 'includes/menu-reportes.php';
-    require_once TURESERVA_PATH . 'includes/menu-tokens.php';
-    require_once TURESERVA_PATH . 'includes/menu-cron.php';
-    require_once TURESERVA_PATH . 'includes/menu-payments.php';
-
-    // Meta boxes
-    require_once TURESERVA_PATH . 'includes/meta-boxes-alojamiento.php';
-
-    // Páginas internas del sistema
-    require_once TURESERVA_PATH . 'includes/setup-pages.php';
-}
-add_action('admin_menu', 'tureserva_load_admin_menus', 20);
 
 
 // =======================================================
@@ -106,8 +73,28 @@ function tureserva_init()
         require_once TURESERVA_PATH . 'admin/pages/idioma-alojamiento.php';
         require_once TURESERVA_PATH . 'admin/pages/panel-supabase.php';
 
-        // Dashboard personalizado
+        // Dashboard interno
         require_once TURESERVA_PATH . 'admin/dashboard/tureserva-dashboard.php';
+
+        // AJAX Handlers
+        require_once TURESERVA_PATH . 'admin/reservas/ajax-find-available.php';
+        require_once TURESERVA_PATH . 'admin/reservas/ajax-create-reservation.php';
+
+        // Menús principales y secundarios
+        require_once TURESERVA_PATH . 'includes/menu-alojamiento.php';
+        require_once TURESERVA_PATH . 'includes/menu-calendario.php';
+        require_once TURESERVA_PATH . 'includes/menu-reservas.php';
+        require_once TURESERVA_PATH . 'includes/menu-notificaciones.php';
+        require_once TURESERVA_PATH . 'includes/menu-reportes.php';
+        require_once TURESERVA_PATH . 'includes/menu-tokens.php';
+        require_once TURESERVA_PATH . 'includes/menu-cron.php';
+        require_once TURESERVA_PATH . 'includes/menu-payments.php';
+
+        // Meta boxes del módulo Alojamiento
+        require_once TURESERVA_PATH . 'includes/meta-boxes-alojamiento.php';
+
+        // Páginas especiales del sistema
+        require_once TURESERVA_PATH . 'includes/setup-pages.php';
     }
 
     // ---------- CORE ----------
@@ -127,7 +114,6 @@ function tureserva_init()
         'core-cron.php',
         'core-payments.php',
     ];
-
     foreach ($core_files as $file) {
         require_once TURESERVA_PATH . 'core/' . $file;
     }
@@ -144,7 +130,6 @@ function tureserva_init()
         'tureserva-sync-pagos.php',
         'tureserva-sync-inverse.php'
     ];
-
     foreach ($sync_files as $file) {
         require_once TURESERVA_PATH . 'includes/sync/' . $file;
     }
@@ -159,7 +144,7 @@ add_action('plugins_loaded', 'tureserva_init');
 // =======================================================
 function tureserva_on_activate()
 {
-    // Ejecutar init para asegurar carga de módulos
+    // Cargar toda la lógica
     tureserva_init();
 
     // Regenerar reglas
