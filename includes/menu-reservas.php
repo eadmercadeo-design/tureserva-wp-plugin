@@ -148,6 +148,7 @@ function tureserva_admin_menu_reservas()
     // =======================================================
     // 🔄 Sincronización de calendarios
     // =======================================================
+    /*
     add_submenu_page(
         'edit.php?post_type=tureserva_reserva',
         __('Sincronización de calendarios', 'tureserva'),
@@ -156,9 +157,10 @@ function tureserva_admin_menu_reservas()
         'tureserva-calendarios',
         'tureserva_calendarios_page_render'
     );
+    */
     
     // Aseguramos cargar archivo
-    require_once TURESERVA_PATH . 'admin/pages/calendarios.php';
+    // require_once TURESERVA_PATH . 'admin/pages/calendarios.php';
 
     // =======================================================
     // 📊 Informes
