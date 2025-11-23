@@ -74,14 +74,17 @@ function tureserva_generate_ical_feed($post_id) {
 }
 
 // Helper temporal si no existe en otro lado
-function tureserva_get_reservas_por_alojamiento($alojamiento_id) {
-    return get_posts([
-        'post_type' => 'tureserva_reserva',
-        'numberposts' => -1,
-        'meta_key' => '_tureserva_alojamiento_id',
-        'meta_value' => $alojamiento_id,
-        'post_status' => ['publish', 'future'] // Confirmadas
-    ]);
+// Helper temporal si no existe en otro lado
+if (!function_exists('tureserva_get_reservas_por_alojamiento')) {
+    function tureserva_get_reservas_por_alojamiento($alojamiento_id) {
+        return get_posts([
+            'post_type' => 'tureserva_reserva',
+            'numberposts' => -1,
+            'meta_key' => '_tureserva_alojamiento_id',
+            'meta_value' => $alojamiento_id,
+            'post_status' => ['publish', 'future'] // Confirmadas
+        ]);
+    }
 }
 
 // =======================================================

@@ -119,16 +119,24 @@ function tureserva_render_calendar_list() {
             <tbody>
                 <?php foreach ($alojamientos as $aloj): 
                     $export_url = site_url('?tureserva_ical=export&ical_id=' . $aloj->ID);
-                    $imports = get_post_meta($aloj->ID, '_tureserva_ical_imports', true) ?: [];
+                    $imports = get_post_meta($aloj->ID, '_tureserva_ical_imports', true);
+                    if (!is_array($imports)) $imports = [];
                     $last_sync = get_post_meta($aloj->ID, '_tureserva_last_sync', true);
                     $sync_status = get_post_meta($aloj->ID, '_tureserva_sync_status', true) ?: 'pending';
                     
-                    $status_class = match($sync_status) {
-                        'success' => 'status-success',
-                        'warning' => 'status-warning',
-                        'error'   => 'status-error',
-                        default   => 'status-pending'
-                    };
+                    switch ($sync_status) {
+                        case 'success':
+                            $status_class = 'status-success';
+                            break;
+                        case 'warning':
+                            $status_class = 'status-warning';
+                            break;
+                        case 'error':
+                            $status_class = 'status-error';
+                            break;
+                        default:
+                            $status_class = 'status-pending';
+                    }
                 ?>
                 <tr id="row-<?php echo $aloj->ID; ?>">
                     <td>
@@ -250,7 +258,8 @@ function tureserva_render_calendar_edit($post_id) {
         echo '<div class="notice notice-success is-dismissible"><p>Calendarios actualizados correctamente.</p></div>';
     }
 
-    $imports = get_post_meta($post_id, '_tureserva_ical_imports', true) ?: [];
+    $imports = get_post_meta($post_id, '_tureserva_ical_imports', true);
+    if (!is_array($imports)) $imports = [];
     ?>
     <div class="wrap">
         <h1 class="wp-heading-inline">📅 Editar Calendarios: <?php echo esc_html($alojamiento->post_title); ?></h1>
