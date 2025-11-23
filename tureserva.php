@@ -114,7 +114,7 @@ function tureserva_init()
         require_once TURESERVA_PATH . 'includes/meta-boxes-impuestos.php';
 
         // Core iCal
-        require_once TURESERVA_PATH . 'core/core-ical.php';
+        // require_once TURESERVA_PATH . 'core/core-ical.php';
 
         // Páginas especiales del sistema
         require_once TURESERVA_PATH . 'includes/setup-pages.php';
