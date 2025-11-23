@@ -17,11 +17,15 @@ if (!defined('ABSPATH')) exit;
  */
 function tureserva_create_system_pages() {
 
-    // 🔹 Listado de páginas base
+    // 🔹 Listado de páginas base requeridas
     $pages = array(
         'buscar-disponibilidad' => array(
             'title'   => 'Buscar disponibilidad',
             'content' => '[tureserva_buscar_disponibilidad]'
+        ),
+        'resultados-de-busqueda' => array(
+            'title'   => 'Resultados de búsqueda',
+            'content' => '[tureserva_resultados_busqueda]'
         ),
         'cancelacion-de-reserva' => array(
             'title'   => 'Cancelación de reserva',
@@ -55,10 +59,6 @@ function tureserva_create_system_pages() {
             'title'   => 'Mi cuenta',
             'content' => '[tureserva_mi_cuenta]'
         ),
-        'resultados-de-busqueda' => array(
-            'title'   => 'Resultados de búsqueda',
-            'content' => '[tureserva_resultados_busqueda]'
-        ),
     );
 
     // 🔹 Crear cada página si no existe
@@ -73,27 +73,21 @@ function tureserva_create_system_pages() {
                 'post_content' => $page['content'],
                 'post_status'  => 'publish',
                 'post_type'    => 'page',
-                'post_author'  => 1
+                'post_author'  => get_current_user_id() ?: 1,
+                'comment_status' => 'closed',
+                'ping_status'    => 'closed'
             ));
 
             if ($new_page_id && !is_wp_error($new_page_id)) {
                 update_option('tureserva_page_' . $slug, $new_page_id);
             }
         } else {
-            // 🔹 Si ya existe, guardar su ID igualmente
+            // 🔹 Si ya existe, asegurarnos de guardar su ID para referencia futura
             update_option('tureserva_page_' . $slug, $existing_page->ID);
         }
     }
 }
 
-/**
- * ==========================================================
- * 🧩 Hook de activación (debe ejecutarse desde el archivo principal)
- * ==========================================================
- */
-if (defined('TURESERVA_MAIN_FILE')) {
-    register_activation_hook(TURESERVA_MAIN_FILE, 'tureserva_create_system_pages');
-}
 /**
  * ==========================================================
  * 🧠 Función auxiliar: Obtener ID de una página del sistema
@@ -103,6 +97,7 @@ if (defined('TURESERVA_MAIN_FILE')) {
 function tureserva_get_page_id($slug) {
     return get_option('tureserva_page_' . $slug);
 }
+
 /**
  * ==========================================================
  * 🧰 Herramienta de diagnóstico de páginas del sistema
@@ -127,6 +122,7 @@ function tureserva_render_system_pages_tool() {
 
     $pages = array(
         'buscar-disponibilidad' => 'Buscar disponibilidad',
+        'resultados-de-busqueda' => 'Resultados de búsqueda',
         'cancelacion-de-reserva' => 'Cancelación de reserva',
         'comodidades' => 'Comodidades',
         'confirmacion-de-reserva' => 'Confirmación de reserva',
@@ -135,7 +131,6 @@ function tureserva_render_system_pages_tool() {
         'reserva-recibida' => 'Reserva recibida',
         'transaccion-fallida' => 'Transacción fallida',
         'mi-cuenta' => 'Mi cuenta',
-        'resultados-de-busqueda' => 'Resultados de búsqueda',
     );
 
     echo '<table class="widefat striped">';
@@ -160,6 +155,7 @@ function tureserva_render_system_pages_tool() {
     if (isset($_POST['tureserva_regenerar_paginas'])) {
         tureserva_create_system_pages();
         echo '<div class="updated"><p>✅ Páginas verificadas y creadas si hacían falta.</p></div>';
+        echo '<script>window.location.reload();</script>'; // Recargar para ver cambios
     }
 
     echo '</div>';

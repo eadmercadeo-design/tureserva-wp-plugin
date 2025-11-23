@@ -113,8 +113,7 @@ function tureserva_admin_menu_reservas()
         __('Cupones de descuento', 'tureserva'),
         __('Cupones', 'tureserva'),
         'manage_options',
-        'tureserva-cupones',
-        'tureserva_cupones_page_render'
+        'edit.php?post_type=tureserva_cupon'
     );
 
     // =======================================================
@@ -128,6 +127,9 @@ function tureserva_admin_menu_reservas()
         'tureserva-reglas',
         'tureserva_reglas_page_render'
     );
+    
+    // Aseguramos cargar archivo
+    require_once TURESERVA_PATH . 'admin/pages/reglas.php';
 
     // =======================================================
     // 💰 Impuestos y cargos
@@ -140,7 +142,9 @@ function tureserva_admin_menu_reservas()
         'tureserva-impuestos',
         'tureserva_impuestos_page_render'
     );
-
+    
+    // Aseguramos cargar archivo
+    require_once TURESERVA_PATH . 'admin/pages/impuestos.php';
     // =======================================================
     // 🔄 Sincronización de calendarios
     // =======================================================
@@ -149,9 +153,12 @@ function tureserva_admin_menu_reservas()
         __('Sincronización de calendarios', 'tureserva'),
         __('Sincronizar calendarios', 'tureserva'),
         'manage_options',
-        'tureserva-calendar-sync',
-        'tureserva_calendar_sync_page_render'
+        'tureserva-calendarios',
+        'tureserva_calendarios_page_render'
     );
+    
+    // Aseguramos cargar archivo
+    require_once TURESERVA_PATH . 'admin/pages/calendarios.php';
 
     // =======================================================
     // 📊 Informes
@@ -184,55 +191,16 @@ function tureserva_admin_menu_reservas()
 // =======================================================
 // (Estos están correctos; solo los documento mejor)
 
-function tureserva_clientes_page_render() {
-    ?>
-    <div class="wrap">
-        <h1><?php _e('Clientes', 'tureserva'); ?></h1>
-        <p><?php _e('Gestión de clientes del sistema de reservas.', 'tureserva'); ?></p>
-        <p><em><?php _e('Esta funcionalidad está en desarrollo.', 'tureserva'); ?></em></p>
-    </div>
-    <?php
-}
+    // Aseguramos cargar archivo
+    require_once TURESERVA_PATH . 'admin/pages/clientes.php';
 
-function tureserva_cupones_page_render() {
-    ?>
-    <div class="wrap">
-        <h1><?php _e('Cupones de Descuento', 'tureserva'); ?></h1>
-        <p><?php _e('Gestión de cupones y códigos promocionales.', 'tureserva'); ?></p>
-        <p><em><?php _e('Esta funcionalidad está en desarrollo.', 'tureserva'); ?></em></p>
-    </div>
-    <?php
-}
 
-function tureserva_reglas_page_render() {
-    ?>
-    <div class="wrap">
-        <h1><?php _e('Reglas de Reserva', 'tureserva'); ?></h1>
-        <p><?php _e('Configuración de reglas y políticas de reserva.', 'tureserva'); ?></p>
-        <p><em><?php _e('Esta funcionalidad está en desarrollo.', 'tureserva'); ?></em></p>
-    </div>
-    <?php
-}
 
-function tureserva_impuestos_page_render() {
-    ?>
-    <div class="wrap">
-        <h1><?php _e('Impuestos y Cargos', 'tureserva'); ?></h1>
-        <p><?php _e('Gestión de impuestos y cargos adicionales.', 'tureserva'); ?></p>
-        <p><em><?php _e('Esta funcionalidad está en desarrollo.', 'tureserva'); ?></em></p>
-    </div>
-    <?php
-}
 
-function tureserva_calendar_sync_page_render() {
-    ?>
-    <div class="wrap">
-        <h1><?php _e('Sincronización de Calendarios', 'tureserva'); ?></h1>
-        <p><?php _e('Configuración de sincronización con calendarios externos.', 'tureserva'); ?></p>
-        <p><em><?php _e('Esta funcionalidad está en desarrollo.', 'tureserva'); ?></em></p>
-    </div>
-    <?php
-}
+
+
+
+
 
 function tureserva_informes_page_render() {
     ?>

@@ -32,7 +32,7 @@ function tureserva_calendario_assets($hook) {
     $is_calendar_page = (
         strpos($hook, 'tureserva_calendario') !== false ||
         (isset($_GET['page']) && $_GET['page'] === 'tureserva_calendario') ||
-        (isset($_GET['post_type']) && $_GET['post_type'] === 'tureserva_reservas' && isset($_GET['page']) && $_GET['page'] === 'tureserva_calendario')
+        (isset($_GET['post_type']) && $_GET['post_type'] === 'tureserva_reserva' && isset($_GET['page']) && $_GET['page'] === 'tureserva_calendario')
     );
     
     if (!$is_calendar_page) {
@@ -117,11 +117,11 @@ function tureserva_vista_calendario() {
 
         <!-- 🧭 Pestañas de navegación -->
         <h2 class="nav-tab-wrapper" style="margin-bottom:20px;">
-            <a href="<?php echo esc_url(admin_url('edit.php?post_type=tureserva_reservas&page=tureserva_calendario&view=month')); ?>"
+            <a href="<?php echo esc_url(admin_url('edit.php?post_type=tureserva_reserva&page=tureserva_calendario&view=month')); ?>"
                class="nav-tab <?php echo (!isset($_GET['view']) || $_GET['view'] == 'month') ? 'nav-tab-active' : ''; ?>">
                Vista mensual
             </a>
-            <a href="<?php echo esc_url(admin_url('edit.php?post_type=tureserva_reservas&page=tureserva_calendario&view=timeline')); ?>"
+            <a href="<?php echo esc_url(admin_url('edit.php?post_type=tureserva_reserva&page=tureserva_calendario&view=timeline')); ?>"
                class="nav-tab <?php echo (isset($_GET['view']) && $_GET['view'] == 'timeline') ? 'nav-tab-active' : ''; ?>">
                Vista por alojamiento
             </a>

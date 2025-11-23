@@ -100,6 +100,21 @@ function tureserva_init()
 
         // Meta boxes del módulo Alojamiento
         require_once TURESERVA_PATH . 'includes/meta-boxes-alojamiento.php';
+        
+        // Módulo Cupones
+        require_once TURESERVA_PATH . 'includes/cpt-cupones.php';
+        require_once TURESERVA_PATH . 'includes/meta-boxes-cupones.php';
+
+        // Módulo Reglas
+        require_once TURESERVA_PATH . 'includes/cpt-reglas.php';
+        require_once TURESERVA_PATH . 'includes/meta-boxes-reglas.php';
+
+        // Módulo Impuestos
+        require_once TURESERVA_PATH . 'includes/cpt-impuestos.php';
+        require_once TURESERVA_PATH . 'includes/meta-boxes-impuestos.php';
+
+        // Core iCal
+        require_once TURESERVA_PATH . 'core/core-ical.php';
 
         // Páginas especiales del sistema
         require_once TURESERVA_PATH . 'includes/setup-pages.php';
@@ -154,6 +169,11 @@ function tureserva_on_activate()
 {
     // Cargar toda la lógica
     tureserva_init();
+
+    // Crear páginas del sistema automáticamente
+    if (function_exists('tureserva_create_system_pages')) {
+        tureserva_create_system_pages();
+    }
 
     // Regenerar reglas
     flush_rewrite_rules();
