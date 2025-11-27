@@ -59,7 +59,7 @@ function tureserva_generar_reporte( $args = array() ) {
     }
 
     $query = new WP_Query( array(
-        'post_type'      => 'tureserva_reservas',
+        'post_type'      => 'tureserva_reserva',
         'posts_per_page' => -1,
         'post_status'    => 'publish',
         'meta_query'     => $meta_query

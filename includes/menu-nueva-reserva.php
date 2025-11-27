@@ -50,7 +50,7 @@ if ( ! function_exists( 'tureserva_admin_menu_nueva_reserva' ) ) {
             __( 'Todas las reservas', 'tureserva' ),
             __( 'Todas las reservas', 'tureserva' ),
             'manage_options',
-            'edit.php?post_type=tureserva_reservas'
+            'edit.php?post_type=tureserva_reserva'
         );
 
         // -------------------------------

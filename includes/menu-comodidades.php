@@ -26,7 +26,7 @@ function tureserva_comodidades_page() {
 
     // Consulta de alojamientos físicos
     $args = [
-        'post_type'      => 'tureserva_alojamiento',
+        'post_type'      => 'trs_alojamiento',
         'posts_per_page' => -1,
         'post_status'    => 'publish',
         'orderby'        => 'title',

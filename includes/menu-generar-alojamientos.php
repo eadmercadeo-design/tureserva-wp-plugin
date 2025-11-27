@@ -77,7 +77,7 @@ function tureserva_run_alojamientos_generator($regenerar = false)
 
         // Obtener alojamientos existentes del tipo
         $actuales = get_posts([
-            'post_type'   => 'tureserva_alojamiento',
+            'post_type'   => 'trs_alojamiento',
             'numberposts' => -1,
             'tax_query'   => [[
                 'taxonomy' => 'tipo_alojamiento',
@@ -101,13 +101,13 @@ function tureserva_run_alojamientos_generator($regenerar = false)
 
             // Si NO estamos regenerando, evitar duplicados
             if (!$regenerar) {
-                $existe = get_page_by_title($titulo, OBJECT, 'tureserva_alojamiento');
+                $existe = get_page_by_title($titulo, OBJECT, 'trs_alojamiento');
                 if ($existe) continue;
             }
 
             wp_insert_post([
                 'post_title'  => $titulo,
-                'post_type'   => 'tureserva_alojamiento',
+                'post_type'   => 'trs_alojamiento',
                 'post_status' => 'publish',
                 'tax_input'   => [
                     'tipo_alojamiento' => [$tipo->term_id]

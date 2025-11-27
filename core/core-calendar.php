@@ -58,7 +58,7 @@ function tureserva_get_calendar() {
     // 🏨 1. Reservas
     // =======================================================
     $args = [
-        'post_type'      => 'tureserva_reservas',
+        'post_type'      => 'tureserva_reserva',
         'posts_per_page' => -1,
         'post_status'    => 'publish',
         'meta_query'     => []

@@ -231,9 +231,15 @@ function tureserva_save_tarifas_metabox($post_id)
     $precios = $_POST['tureserva_precios'] ?? [];
     $sanitized_precios = [];
 
-    foreach ($precios as $p) {
+    // Variables para determinar las fechas globales de la tarifa (basadas en la primera temporada válida)
+    $global_start = '';
+    $global_end = '';
+
+    foreach ($precios as $index => $p) {
+        $temporada_id = sanitize_text_field($p['temporada_id'] ?? '');
+        
         $bloque = [
-            'temporada_id' => sanitize_text_field($p['temporada_id'] ?? ''),
+            'temporada_id' => $temporada_id,
             'precio_base'  => floatval($p['precio_base'] ?? 0),
             'adultos'      => intval($p['adultos'] ?? 1),
             'ninos'        => intval($p['ninos'] ?? 0),
@@ -250,11 +256,23 @@ function tureserva_save_tarifas_metabox($post_id)
             }
         }
         $sanitized_precios[] = $bloque;
+
+        // Si es el primer bloque y tiene temporada, obtenemos sus fechas para la tarifa global
+        if ($index === 0 && !empty($temporada_id)) {
+            $global_start = get_post_meta($temporada_id, '_tureserva_fecha_inicio', true);
+            $global_end   = get_post_meta($temporada_id, '_tureserva_fecha_fin', true);
+        }
     }
 
     update_post_meta($post_id, '_tureserva_precios', $sanitized_precios);
     
-    // Compatibilidad con la vista de lista (guardar el primer precio base y temporada para mostrar en columnas)
+    // 3. Guardar fechas globales para que core-pricing.php pueda encontrar esta tarifa
+    if ($global_start && $global_end) {
+        update_post_meta($post_id, '_tureserva_fecha_inicio', $global_start);
+        update_post_meta($post_id, '_tureserva_fecha_fin', $global_end);
+    }
+
+    // Compatibilidad con la vista de lista
     if (!empty($sanitized_precios)) {
         update_post_meta($post_id, '_tureserva_precio_base', $sanitized_precios[0]['precio_base']);
         update_post_meta($post_id, '_tureserva_temporada_id', $sanitized_precios[0]['temporada_id']);

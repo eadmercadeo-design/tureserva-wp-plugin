@@ -40,6 +40,14 @@ function tureserva_crear_reserva( $args = array() ) {
         return new WP_Error( 'datos_incompletos', __( 'Faltan datos obligatorios para crear la reserva.', 'tureserva' ) );
     }
 
+    // 📏 Validar Reglas de Negocio (Min Stay, Arrival Days, etc.)
+    if ( function_exists( 'tureserva_validar_reglas' ) ) {
+        $reglas_ok = tureserva_validar_reglas( $data['alojamiento_id'], $data['check_in'], $data['check_out'] );
+        if ( is_wp_error( $reglas_ok ) ) {
+            return $reglas_ok;
+        }
+    }
+
     // Verificar disponibilidad
     $disponible = tureserva_esta_disponible( $data['alojamiento_id'], $data['check_in'], $data['check_out'] );
     if ( ! $disponible ) {
@@ -62,7 +70,7 @@ function tureserva_crear_reserva( $args = array() ) {
     // Crear post de tipo reserva
     $reserva_id = wp_insert_post( array(
         'post_title'   => 'Reserva de ' . $data['cliente']['nombre'] . ' (' . date_i18n( 'd/m/Y', strtotime( $data['check_in'] ) ) . ')',
-        'post_type'    => 'tureserva_reservas',
+        'post_type'    => 'tureserva_reserva',
         'post_status'  => 'publish',
         'post_content' => sanitize_textarea_field( $data['cliente']['notas'] ),
     ) );

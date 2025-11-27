@@ -61,29 +61,10 @@ function tureserva_admin_menu_reservas()
         __('Añadir nueva', 'tureserva'),
         'manage_options',
         'tureserva-add-reserva',
-        function () {
+        function() {
             require_once TURESERVA_PATH . 'admin/reservas/add-new.php';
         }
     );
-
-    // =======================================================
-    // 💳 Historial de pagos
-    // =======================================================
-    add_submenu_page(
-        'edit.php?post_type=tureserva_reserva',
-        __('Historial de pagos', 'tureserva'),
-        __('Historial de pagos', 'tureserva'),
-        'manage_options',
-        'tureserva-historial-pagos',
-        'tureserva_historial_pagos_page_render'
-    );
-
-    // Aseguramos cargar archivo
-    require_once TURESERVA_PATH . 'admin/pages/historial-pagos.php';
-
-    // =======================================================
-    // 📆 Calendario de reservas
-    // =======================================================
     add_submenu_page(
         'edit.php?post_type=tureserva_reserva',
         __('Calendario de reservas', 'tureserva'),
@@ -145,22 +126,19 @@ function tureserva_admin_menu_reservas()
     
     // Aseguramos cargar archivo
     require_once TURESERVA_PATH . 'admin/pages/impuestos.php';
+
     // =======================================================
     // 🔄 Sincronización de calendarios
     // =======================================================
-    /*
+    require_once TURESERVA_PATH . 'admin/pages/calendarios.php';
     add_submenu_page(
         'edit.php?post_type=tureserva_reserva',
-        __('Sincronización de calendarios', 'tureserva'),
         __('Sincronizar calendarios', 'tureserva'),
+        __('Sincronizar (iCal)', 'tureserva'),
         'manage_options',
         'tureserva-calendarios',
-        'tureserva_calendarios_page_render'
+        'trs_ical_admin_render'
     );
-    */
-    
-    // Aseguramos cargar archivo
-    // require_once TURESERVA_PATH . 'admin/pages/calendarios.php';
 
     // =======================================================
     // 📊 Informes

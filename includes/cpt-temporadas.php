@@ -81,7 +81,9 @@ function tureserva_render_temporada_metabox($post)
 {
     $fecha_inicio = get_post_meta($post->ID, '_tureserva_fecha_inicio', true);
     $fecha_fin = get_post_meta($post->ID, '_tureserva_fecha_fin', true);
+    $fecha_fin = get_post_meta($post->ID, '_tureserva_fecha_fin', true);
     $dias = (array)get_post_meta($post->ID, '_tureserva_dias_aplicados', true);
+    $factor = get_post_meta($post->ID, '_tureserva_factor_precio', true) ?: '1.0';
 
     wp_nonce_field('tureserva_save_temporada', 'tureserva_temporada_nonce');
     ?>
@@ -125,6 +127,14 @@ function tureserva_render_temporada_metabox($post)
                 <p class="description">Use Ctrl/Cmd para seleccionar múltiples días.</p>
             </td>
         </tr>
+
+        <tr>
+            <th><label>Factor de Precio (Opcional)</label></th>
+            <td>
+                <input type="number" step="0.1" name="tureserva_factor_precio" value="<?php echo esc_attr($factor); ?>" style="width: 100px;">
+                <p class="description">Multiplicador para el cálculo simple (Ej: 1.5 para aumentar 50%). Se ignora si hay Tarifas Avanzadas.</p>
+            </td>
+        </tr>
     </table>
 
     <?php
@@ -145,6 +155,37 @@ function tureserva_save_temporada_metabox($post_id)
     $inicio = sanitize_text_field($_POST['tureserva_fecha_inicio']);
     $fin = sanitize_text_field($_POST['tureserva_fecha_fin']);
 
+    // 🛑 VALIDACIÓN DE SOLAPAMIENTO (Server Side)
+    // Excluimos el post actual para evitar falso positivo al editar
+    $overlap = get_posts([
+        'post_type' => 'temporada',
+        'posts_per_page' => 1,
+        'post_status' => 'publish',
+        'exclude' => [$post_id],
+        'meta_query' => [
+            'relation' => 'AND',
+            [
+                'key' => '_tureserva_fecha_inicio',
+                'value' => $fin,
+                'compare' => '<=',
+                'type' => 'DATE'
+            ],
+            [
+                'key' => '_tureserva_fecha_fin',
+                'value' => $inicio,
+                'compare' => '>=',
+                'type' => 'DATE'
+            ]
+        ]
+    ]);
+
+    if (!empty($overlap)) {
+        // Si hay solapamiento, NO guardamos las fechas y mostramos un error (o evitamos update)
+        // Como es save_post, lo ideal es usar un transient para mostrar admin notice
+        set_transient('tureserva_season_error_' . get_current_user_id(), 'Error: Las fechas se solapan con la temporada "' . $overlap[0]->post_title . '".', 45);
+        return; 
+    }
+
     // Validación: fecha final debe ser >= fecha inicio
     if ($inicio && $fin && strtotime($fin) < strtotime($inicio)) {
         // Guardamos igual, pero prevenimos errores lógicos
@@ -158,6 +199,10 @@ function tureserva_save_temporada_metabox($post_id)
 
     $dias = isset($_POST['tureserva_dias_aplicados']) ? array_map('sanitize_text_field', $_POST['tureserva_dias_aplicados']) : [];
     update_post_meta($post_id, '_tureserva_dias_aplicados', $dias);
+
+    if (isset($_POST['tureserva_factor_precio'])) {
+        update_post_meta($post_id, '_tureserva_factor_precio', floatval($_POST['tureserva_factor_precio']));
+    }
 }
 add_action('save_post_temporada', 'tureserva_save_temporada_metabox');
 

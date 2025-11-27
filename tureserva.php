@@ -126,6 +126,7 @@ function tureserva_init()
         'core-settings.php',
         'core-pricing.php',
         'core-availability.php',
+        'core-rules.php', // 📏 Motor de Reglas
         'core-bookings.php',
         'core-notifications.php',
         'core-email-cron.php',
@@ -151,11 +152,25 @@ function tureserva_init()
         'cloud-handler.php',
         'cloud-sync.php',
         'tureserva-sync-pagos.php',
-        'tureserva-sync-inverse.php'
+        'tureserva-sync-inverse.php',
+        // New iCal Sync Classes
+        '../repositories/class-tureserva-sync-urls-repository.php',
+        '../repositories/class-tureserva-room-repository.php',
+        '../repositories/class-tureserva-booking-repository.php',
+        'class-tureserva-ical-cron.php',
+        'class-tureserva-queued-synchronizer.php',
+        'class-tureserva-background-synchronizer.php',
+        'class-tureserva-ical-importer.php',
+        'class-tureserva-ical-exporter.php',
+        'class-tureserva-calendar-feed.php',
     ];
     foreach ($sync_files as $file) {
         require_once TURESERVA_PATH . 'includes/sync/' . $file;
     }
+
+    // Initialize Global Instances
+    new TuReserva_Ical_Cron();
+    new TuReserva_Calendar_Feed();
 
     load_plugin_textdomain('tureserva', false, dirname(plugin_basename(__FILE__)) . '/languages');
 }
@@ -176,7 +191,17 @@ function tureserva_on_activate()
     }
 
     // Regenerar reglas
+    // Asegurar que las reglas del feed estén registradas antes del flush
+    if ( class_exists( 'TuReserva_Calendar_Feed' ) ) {
+        $feed = new TuReserva_Calendar_Feed();
+        $feed->setup_feed();
+    }
     flush_rewrite_rules();
+
+    // Crear tablas personalizadas
+    require_once TURESERVA_PATH . 'includes/repositories/class-tureserva-sync-urls-repository.php';
+    $repo = new TuReserva_Sync_Urls_Repository();
+    $repo->create_table();
 }
 register_activation_hook(__FILE__, 'tureserva_on_activate');
 

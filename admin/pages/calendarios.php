@@ -9,29 +9,14 @@
 
 if (!defined('ABSPATH')) exit;
 
-function tureserva_calendarios_page_render() {
+function trs_ical_admin_render() {
     // 🕵️ VISTA DE EDICIÓN
     if (isset($_GET['view']) && $_GET['view'] === 'edit' && !empty($_GET['id'])) {
-        tureserva_render_calendar_edit(intval($_GET['id']));
+        trs_ical_admin_render_edit(intval($_GET['id']));
         return;
     }
-
-    // 📋 VISTA DE TABLA (DEFAULT)
-    tureserva_render_calendar_list();
-}
-
-// =======================================================
-// 📋 VISTA DE LISTADO
-// =======================================================
-function tureserva_render_calendar_list() {
-    $alojamientos = get_posts(['post_type' => 'trs_alojamiento', 'posts_per_page' => -1]);
     ?>
-    <div class="wrap">
-        <h1 class="wp-heading-inline">🔄 Sincronización de Calendarios (iCal)</h1>
-        <p class="description">Conecta tus alojamientos con Airbnb, Booking.com, Vrbo y otras plataformas mediante iCal.</p>
-        <hr class="wp-header-end">
-
-        <style>
+    <style>
             .ts-sync-table {
                 width: 100%;
                 border-collapse: separate;
@@ -110,78 +95,105 @@ function tureserva_render_calendar_list() {
             <thead>
                 <tr>
                     <th>Alojamiento</th>
-                    <th>Exportar (Tu enlace iCal)</th>
-                    <th>Calendarios Externos</th>
                     <th>Estado</th>
-                    <th style="text-align:right;">Acciones</th>
+                    <th>Acciones</th>
                 </tr>
             </thead>
             <tbody>
-                <?php foreach ($alojamientos as $aloj): 
-                    $export_url = site_url('?tureserva_ical=export&ical_id=' . $aloj->ID);
-                    $imports = get_post_meta($aloj->ID, '_tureserva_ical_imports', true);
-                    if (!is_array($imports)) $imports = [];
-                    $last_sync = get_post_meta($aloj->ID, '_tureserva_last_sync', true);
-                    $sync_status = get_post_meta($aloj->ID, '_tureserva_sync_status', true) ?: 'pending';
-                    
-                    switch ($sync_status) {
-                        case 'success':
-                            $status_class = 'status-success';
-                            break;
-                        case 'warning':
-                            $status_class = 'status-warning';
-                            break;
-                        case 'error':
-                            $status_class = 'status-error';
-                            break;
-                        default:
-                            $status_class = 'status-pending';
-                    }
-                ?>
-                <tr id="row-<?php echo $aloj->ID; ?>">
-                    <td>
-                        <strong><?php echo esc_html($aloj->post_title); ?></strong><br>
-                        <span style="font-size:12px; color:#666;">ID: <?php echo $aloj->ID; ?></span>
-                    </td>
-                    <td>
-                        <div class="ts-ical-link-box" title="<?php echo esc_attr($export_url); ?>">
-                            <?php echo esc_html($export_url); ?>
-                        </div>
-                        <div style="margin-top:5px;">
-                            <button class="button button-small ts-copy-btn" data-url="<?php echo esc_attr($export_url); ?>">Copiar</button>
-                            <a href="<?php echo esc_url($export_url); ?>" class="button button-small">Descargar</a>
-                        </div>
-                    </td>
-                    <td>
-                        <?php if (empty($imports)): ?>
-                            <span style="color:#999;">— Ninguno —</span>
-                        <?php else: ?>
-                            <?php foreach ($imports as $imp): ?>
-                                <div style="margin-bottom:3px;">
-                                    <span class="dashicons dashicons-calendar-alt" style="font-size:14px; width:14px; height:14px; vertical-align:middle;"></span>
-                                    <?php echo esc_html($imp['source']); ?>
-                                </div>
-                            <?php endforeach; ?>
-                        <?php endif; ?>
-                    </td>
-                    <td>
-                        <div>
-                            <span class="ts-status-indicator <?php echo $status_class; ?>"></span>
-                            <?php echo ucfirst($sync_status); ?>
-                        </div>
-                        <?php if ($last_sync): ?>
-                            <div style="font-size:11px; color:#666; margin-top:3px;">
-                                <?php echo date_i18n('d/m/Y H:i', strtotime($last_sync)); ?>
+                <?php
+                // Obtener alojamientos
+                $alojamientos = get_posts(array(
+                    'post_type' => 'trs_alojamiento',
+                    'posts_per_page' => -1,
+                    'post_status' => 'publish'
+                ));
+
+                if (empty($alojamientos)): ?>
+                    <tr><td colspan="5" style="text-align:center; padding:20px;">No hay alojamientos creados.</td></tr>
+                <?php else: 
+                    foreach ($alojamientos as $aloj):
+                        // Datos dummy para demo
+                        $export_url = home_url('/?feed=tureserva.ics&ical_id=' . $aloj->ID);
+                        
+                        // Obtener estado real de la DB
+                        // Por ahora simulado o obtenido del repo
+                        $sync_status = 'pending'; 
+                        $last_sync = '';
+                        
+                        // Consultar DB para estado real
+                        global $wpdb;
+                        $repo = new TuReserva_Sync_Urls_Repository();
+                        $row = $repo->get_sync_status( $aloj->ID );
+                        
+                        if ($row) {
+                            $sync_status = $row->sync_status;
+                            $last_sync = $row->last_sync;
+                        }
+
+                        switch ($sync_status) {
+                            case 'success':
+                                $status_class = 'status-success';
+                                break;
+                            case 'warning':
+                                $status_class = 'status-warning';
+                                break;
+                            case 'error':
+                                $status_class = 'status-error';
+                                break;
+                            default:
+                                $status_class = 'status-pending';
+                        }
+                    ?>
+                    <tr id="row-<?php echo $aloj->ID; ?>">
+                        <td>
+                            <strong><?php echo esc_html($aloj->post_title); ?></strong><br>
+                            <span style="font-size:12px; color:#666;">ID: <?php echo $aloj->ID; ?></span>
+                        </td>
+                        <td>
+                            <div class="ts-ical-link-box" title="<?php echo esc_attr($export_url); ?>">
+                                <?php echo esc_html($export_url); ?>
                             </div>
-                        <?php endif; ?>
-                        <div class="ts-progress-bar"><div class="ts-progress-fill"></div></div>
-                    </td>
-                    <td style="text-align:right;">
-                        <button class="button button-secondary ts-sync-btn" data-id="<?php echo $aloj->ID; ?>">Sincronizar</button>
-                        <a href="?post_type=tureserva_reserva&page=tureserva-calendarios&view=edit&id=<?php echo $aloj->ID; ?>" class="button button-primary">Editar</a>
-                    </td>
-                </tr>
-                <?php endforeach; ?>
+                            <div style="margin-top:5px;">
+                                <button class="button button-small ts-copy-btn" data-url="<?php echo esc_attr($export_url); ?>">Copiar</button>
+                                <a href="<?php echo esc_url($export_url); ?>" class="button button-small">Descargar</a>
+                            </div>
+                        </td>
+                        <td>
+                            <?php 
+                            // 1. Obtener URLs del repositorio
+                            $repo = new TuReserva_Sync_Urls_Repository();
+                            $imports = $repo->get_urls( $aloj->ID );
+                            
+                            if ( empty($imports) ): ?>
+                                <span style="color:#999;">— Ninguno —</span>
+                            <?php else: ?>
+                                <?php foreach ($imports as $sync_id => $url): ?>
+                                    <div style="margin-bottom:3px;">
+                                        <span class="dashicons dashicons-calendar-alt" style="font-size:14px; width:14px; height:14px; vertical-align:middle;"></span>
+                                        <?php echo esc_html( $url ); ?>
+                                    </div>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
+                        </td>
+                        <td>
+                            <div>
+                                <span class="ts-status-indicator <?php echo $status_class; ?>"></span>
+                                <?php echo ucfirst($sync_status); ?>
+                            </div>
+                            <?php if ($last_sync): ?>
+                                <div style="font-size:11px; color:#666; margin-top:3px;">
+                                    <?php echo date_i18n('d/m/Y H:i', strtotime($last_sync)); ?>
+                                </div>
+                            <?php endif; ?>
+                            <div class="ts-progress-bar"><div class="ts-progress-fill"></div></div>
+                        </td>
+                        <td style="text-align:right;">
+                            <button class="button button-secondary ts-sync-btn" data-id="<?php echo $aloj->ID; ?>">Sincronizar</button>
+                            <a href="?post_type=tureserva_reserva&page=tureserva-calendarios&view=edit&id=<?php echo $aloj->ID; ?>" class="button button-primary">Editar</a>
+                        </td>
+                    </tr>
+                    <?php endforeach; ?>
+                <?php endif; ?>
             </tbody>
         </table>
 
@@ -237,28 +249,32 @@ function tureserva_render_calendar_list() {
 // =======================================================
 // 📝 VISTA DE EDICIÓN
 // =======================================================
-function tureserva_render_calendar_edit($post_id) {
+function trs_ical_admin_render_edit($post_id) {
     $alojamiento = get_post($post_id);
     
+    $repo = new TuReserva_Sync_Urls_Repository();
+
     // Guardar cambios
     if (isset($_POST['ts_save_calendars']) && check_admin_referer('ts_save_cals_' . $post_id)) {
-        $new_imports = [];
+        $new_urls = [];
         if (isset($_POST['ical_url']) && is_array($_POST['ical_url'])) {
             foreach ($_POST['ical_url'] as $key => $url) {
                 if (!empty($url)) {
-                    $source = sanitize_text_field($_POST['ical_source'][$key]);
-                    $new_imports[] = [
-                        'url' => esc_url_raw($url),
-                        'source' => $source ?: 'Calendario Externo'
-                    ];
+                    $new_urls[] = esc_url_raw($url);
                 }
             }
         }
-        update_post_meta($post_id, '_tureserva_ical_imports', $new_imports);
+        
+        // Actualizar usando repositorio
+        $repo->update_urls($post_id, $new_urls);
+        
         echo '<div class="notice notice-success is-dismissible"><p>Calendarios actualizados correctamente.</p></div>';
     }
 
-    $imports = get_post_meta($post_id, '_tureserva_ical_imports', true);
+    // Obtener URLs actuales
+    $imports = $repo->get_urls($post_id);
+    // Convertir a formato array simple para la vista si es necesario, 
+    // pero get_urls devuelve [sync_id => url], así que iteramos eso.
     if (!is_array($imports)) $imports = [];
     ?>
     <div class="wrap">
@@ -275,15 +291,15 @@ function tureserva_render_calendar_edit($post_id) {
                     <?php wp_nonce_field('ts_save_cals_' . $post_id); ?>
                     
                     <div id="ts-ical-list">
-                        <?php foreach ($imports as $index => $imp): ?>
+                        <?php foreach ($imports as $sync_id => $url): ?>
                             <div class="ts-ical-row" style="display:flex; gap:10px; margin-bottom:15px; align-items:flex-end;">
                                 <div style="flex:2;">
                                     <label style="display:block; font-weight:600; margin-bottom:5px;">URL del Calendario</label>
-                                    <input type="url" name="ical_url[]" value="<?php echo esc_attr($imp['url']); ?>" class="widefat" placeholder="https://...">
+                                    <input type="url" name="ical_url[]" value="<?php echo esc_attr($url); ?>" class="widefat" placeholder="https://...">
                                 </div>
                                 <div style="flex:1;">
                                     <label style="display:block; font-weight:600; margin-bottom:5px;">Nombre / Origen</label>
-                                    <input type="text" name="ical_source[]" value="<?php echo esc_attr($imp['source']); ?>" class="widefat" placeholder="Ej: Airbnb">
+                                    <input type="text" name="ical_source[]" value="Calendario Externo" class="widefat" placeholder="Ej: Airbnb">
                                 </div>
                                 <div>
                                     <button type="button" class="button ts-remove-row">Eliminar</button>

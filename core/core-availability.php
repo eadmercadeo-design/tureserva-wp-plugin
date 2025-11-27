@@ -28,7 +28,7 @@ function tureserva_esta_disponible( $alojamiento_id, $check_in, $check_out ) {
     // 🔸 1. Revisar reservas existentes
     // ===============================
     $args = array(
-        'post_type'      => 'tureserva_reservas',
+        'post_type'      => 'tureserva_reserva',
         'post_status'    => array( 'publish', 'pending', 'confirmed' ),
         'posts_per_page' => -1,
         'meta_query'     => array(
@@ -71,6 +71,14 @@ function tureserva_esta_disponible( $alojamiento_id, $check_in, $check_out ) {
             if ( $bloqueo_inicio && $bloqueo_fin && $inicio < $bloqueo_fin && $fin > $bloqueo_inicio ) {
                 return false; // Fechas bloqueadas
             }
+        }
+    }
+
+    // 📏 3. Validar Reglas (Min Stay, Bloqueos por Regla, etc.)
+    if ( function_exists( 'tureserva_validar_reglas' ) ) {
+        $reglas_ok = tureserva_validar_reglas( $alojamiento_id, $check_in, $check_out );
+        if ( is_wp_error( $reglas_ok ) ) {
+            return false; // No cumple reglas
         }
     }
 
