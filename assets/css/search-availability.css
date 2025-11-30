@@ -1,0 +1,192 @@
+/* =========================================
+   Search Availability Page Styles
+   ========================================= */
+
+/* Variables */
+:root {
+    --tr-primary: #5d63b4;
+    --tr-accent: #2ecc71;
+    --tr-text-dark: #333;
+    --tr-text-light: #666;
+    --tr-bg-light: #f9f9f9;
+    --tr-white: #ffffff;
+    --tr-border-radius: 12px;
+    --tr-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    --tr-font-family: 'Inter', sans-serif;
+}
+
+.tureserva-search-page {
+    font-family: var(--tr-font-family);
+    /* background-color: var(--tr-bg-light); Removed as per user request */
+    color: var(--tr-text-dark);
+    line-height: 1.6;
+    padding: 20px 0;
+}
+
+.tr-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+/* 2. Search Module */
+.tr-search-section {
+    position: relative;
+    z-index: 10;
+    margin-bottom: 40px;
+}
+
+.tr-search-module {
+    background: var(--tr-white);
+    padding: 15px;
+    border-radius: var(--tr-border-radius);
+    box-shadow: var(--tr-shadow);
+    width: fit-content;
+    /* Fit to content so it wraps the button */
+    max-width: 100%;
+    /* Prevent overflow */
+    margin: 0 auto;
+}
+
+.tr-search-form {
+    display: flex;
+    align-items: flex-end;
+    /* Align to bottom so button matches inputs */
+    gap: 15px;
+    flex-wrap: nowrap;
+    /* Prevent wrapping */
+}
+
+.tr-input-group {
+    flex: 1;
+    min-width: 150px;
+}
+
+.tr-input-group label {
+    display: block;
+    font-size: 0.8rem;
+    font-weight: 600;
+    margin-bottom: 5px;
+    color: var(--tr-text-dark);
+}
+
+.tr-input-wrapper {
+    display: flex;
+    align-items: center;
+    background: #f5f5f5;
+    padding: 8px 12px;
+    border-radius: 8px;
+    transition: background 0.3s;
+}
+
+.tr-input-wrapper:focus-within {
+    background: #fff;
+    box-shadow: 0 0 0 2px var(--tr-primary);
+}
+
+.tr-input-wrapper i {
+    color: var(--tr-text-light);
+    margin-right: 8px;
+}
+
+.tr-input-wrapper input {
+    border: none;
+    background: transparent;
+    width: 100%;
+    font-size: 0.95rem;
+    color: var(--tr-text-dark);
+    outline: none;
+}
+
+.tr-divider {
+    width: 1px;
+    height: 40px;
+    background: #eee;
+    display: none;
+}
+
+@media (min-width: 768px) {
+    .tr-divider {
+        display: block;
+    }
+}
+
+.tr-search-btn {
+    background: var(--tr-primary);
+    color: #fff;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: background 0.3s, transform 0.2s;
+    font-size: 1rem;
+    white-space: nowrap;
+    /* Prevent text wrapping */
+}
+
+.tr-search-btn:hover {
+    filter: brightness(110%);
+    transform: translateY(-1px);
+}
+
+/* 4. Results Section */
+.tr-results-section {
+    padding: 40px 0;
+    background: #fff;
+}
+
+.tr-section-title {
+    text-align: center;
+    font-size: 1.8rem;
+    margin-bottom: 30px;
+    color: var(--tr-text-dark);
+}
+
+.tr-results-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 30px;
+}
+
+/* Skeleton Loader */
+.tr-skeleton-card {
+    height: 300px;
+    background: #f0f0f0;
+    border-radius: var(--tr-border-radius);
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        opacity: 0.6;
+    }
+
+    50% {
+        opacity: 1;
+    }
+
+    100% {
+        opacity: 0.6;
+    }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .tr-search-form {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .tr-input-group {
+        width: 100%;
+    }
+
+    .tr-search-btn {
+        width: 100%;
+        justify-content: center;
+    }
+}

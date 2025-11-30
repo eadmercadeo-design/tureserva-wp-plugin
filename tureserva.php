@@ -118,6 +118,7 @@ function tureserva_init()
 
         // Páginas especiales del sistema
         require_once TURESERVA_PATH . 'includes/setup-pages.php';
+
     }
 
     // ---------- CORE ----------
@@ -141,6 +142,10 @@ function tureserva_init()
     foreach ($core_files as $file) {
         require_once TURESERVA_PATH . 'core/' . $file;
     }
+
+    // ---------- SHORTCODES ----------
+    require_once TURESERVA_PATH . 'includes/shortcode-search-page.php';
+    require_once TURESERVA_PATH . 'shortcodes/shortcode-buscador.php';
 
     // ---------- SYNC ----------
     $sync_files = [

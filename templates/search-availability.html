@@ -1,0 +1,69 @@
+<div class="tureserva-search-page">
+
+    <!-- 1. Hero Compacto -->
+
+
+    <!-- 2. Módulo de Búsqueda -->
+    <section class="tr-search-section">
+        <div class="tr-container">
+            <div class="tr-search-module">
+                <form id="tr-search-form" class="tr-search-form">
+                    <div class="tr-input-group">
+                        <label for="tr-checkin">Llegada</label>
+                        <div class="tr-input-wrapper">
+                            <i class="dashicons dashicons-calendar-alt"></i>
+                            <input type="date" id="tr-checkin" name="checkin" required placeholder="Agrega fechas">
+                        </div>
+                    </div>
+
+                    <div class="tr-divider"></div>
+
+                    <div class="tr-input-group">
+                        <label for="tr-checkout">Salida</label>
+                        <div class="tr-input-wrapper">
+                            <i class="dashicons dashicons-calendar-alt"></i>
+                            <input type="date" id="tr-checkout" name="checkout" required placeholder="Agrega fechas">
+                        </div>
+                    </div>
+
+                    <div class="tr-divider"></div>
+
+                    <div class="tr-input-group">
+                        <label for="tr-guests">Huéspedes</label>
+                        <div class="tr-input-wrapper">
+                            <i class="dashicons dashicons-admin-users"></i>
+                            <input type="number" id="tr-guests" name="guests" min="1" value="2" required
+                                placeholder="¿Cuántos?">
+                        </div>
+                    </div>
+
+                    <button type="submit" class="tr-search-btn">
+                        <i class="dashicons dashicons-search"></i>
+                        <span>Buscar disponibilidad</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- 3. Sección de Beneficios -->
+
+
+    <!-- 4. Contenedor de Resultados -->
+    <section id="tr-results-section" class="tr-results-section" style="display: none;">
+        <div class="tr-container">
+            <h2 class="tr-section-title">Resultados de tu búsqueda</h2>
+
+            <div id="tr-results-container" class="tr-results-grid">
+                <!-- Skeleton Loader -->
+                <div class="tr-skeleton-card"></div>
+                <div class="tr-skeleton-card"></div>
+                <div class="tr-skeleton-card"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 5. Preguntas Frecuentes -->
+
+
+</div>
