@@ -49,7 +49,7 @@ function tureserva_register_api_routes() {
 function tureserva_api_get_alojamientos( $request ) {
 
     $args = array(
-        'post_type'      => 'tureserva_alojamiento',
+        'post_type'      => 'trs_alojamiento',
         'post_status'    => 'publish',
         'posts_per_page' => -1
     );

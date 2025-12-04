@@ -20,7 +20,7 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 add_action( 'admin_menu', 'tureserva_menu_reportes' );
 function tureserva_menu_reportes() {
     add_submenu_page(
-        'edit.php?post_type=tureserva_reservas',
+        'edit.php?post_type=tureserva_reserva',
         'Reportes de Reservas',
         'Reportes',
         'manage_options',
@@ -55,7 +55,7 @@ function tureserva_vista_reportes() {
     if ( ! current_user_can( 'manage_options' ) ) return;
 
     $alojamientos = get_posts( array(
-        'post_type' => 'tureserva_alojamiento',
+        'post_type' => 'trs_alojamiento',
         'posts_per_page' => -1,
         'post_status' => 'publish'
     ) );

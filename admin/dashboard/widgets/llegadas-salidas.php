@@ -13,8 +13,8 @@ if (!defined('ABSPATH')) exit;
 function tureserva_widget_llegadas_salidas_render() {
     global $wpdb;
 
-    $meta_checkin  = '_tureserva_check_in';
-    $meta_checkout = '_tureserva_check_out';
+    $meta_checkin  = '_tureserva_checkin';
+    $meta_checkout = '_tureserva_checkout';
 
     $hoy = date('Y-m-d');
     $limite = date('Y-m-d', strtotime('+7 days'));
@@ -24,7 +24,7 @@ function tureserva_widget_llegadas_salidas_render() {
         SELECT p.ID, p.post_title, pm.meta_value AS fecha_checkin
         FROM $wpdb->posts p
         INNER JOIN $wpdb->postmeta pm ON p.ID = pm.post_id
-        WHERE p.post_type = 'reserva'
+        WHERE p.post_type = 'tureserva_reserva'
         AND p.post_status = 'publish'
         AND pm.meta_key = %s
         AND pm.meta_value BETWEEN %s AND %s
@@ -37,7 +37,7 @@ function tureserva_widget_llegadas_salidas_render() {
         SELECT p.ID, p.post_title, pm.meta_value AS fecha_checkout
         FROM $wpdb->posts p
         INNER JOIN $wpdb->postmeta pm ON p.ID = pm.post_id
-        WHERE p.post_type = 'reserva'
+        WHERE p.post_type = 'tureserva_reserva'
         AND p.post_status = 'publish'
         AND pm.meta_key = %s
         AND pm.meta_value BETWEEN %s AND %s

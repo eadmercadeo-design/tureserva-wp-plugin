@@ -115,7 +115,7 @@ function tureserva_sync_reserva( $reserva_id, $data ) {
 // =======================================================
 function tureserva_sync_alojamientos() {
     $alojamientos = get_posts( array(
-        'post_type'      => 'tureserva_alojamiento',
+        'post_type'      => 'trs_alojamiento',
         'post_status'    => 'publish',
         'posts_per_page' => -1
     ));

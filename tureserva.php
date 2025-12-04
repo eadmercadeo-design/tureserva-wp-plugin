@@ -143,6 +143,11 @@ function tureserva_init()
         require_once TURESERVA_PATH . 'core/' . $file;
     }
 
+    // ---------- ELEMENTOR INTEGRATION ----------
+    if ( did_action( 'elementor/loaded' ) ) {
+        require_once TURESERVA_PATH . 'includes/elementor/class-tureserva-elementor.php';
+    }
+
     // ---------- SHORTCODES ----------
     require_once TURESERVA_PATH . 'includes/shortcode-search-page.php';
     require_once TURESERVA_PATH . 'shortcodes/shortcode-buscador.php';
@@ -204,9 +209,9 @@ function tureserva_on_activate()
     flush_rewrite_rules();
 
     // Crear tablas personalizadas
-    require_once TURESERVA_PATH . 'includes/repositories/class-tureserva-sync-urls-repository.php';
-    $repo = new TuReserva_Sync_Urls_Repository();
-    $repo->create_table();
+    require_once TURESERVA_PATH . 'includes/class-tureserva-database-manager.php';
+    $db_manager = new TuReserva_Database_Manager();
+    $db_manager->create_tables();
 }
 register_activation_hook(__FILE__, 'tureserva_on_activate');
 

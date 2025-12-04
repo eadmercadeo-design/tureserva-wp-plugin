@@ -19,7 +19,7 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 add_action( 'admin_menu', 'tureserva_menu_tokens' );
 function tureserva_menu_tokens() {
     add_submenu_page(
-        'edit.php?post_type=tureserva_reservas',
+        'edit.php?post_type=tureserva_reserva',
         'API Tokens',
         'API Tokens',
         'manage_options',

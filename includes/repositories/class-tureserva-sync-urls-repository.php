@@ -172,29 +172,4 @@ class TuReserva_Sync_Urls_Repository {
         return $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$this->table_name} WHERE room_id = %d LIMIT 1", $room_id ) );
     }
     
-    /**
-     * Crea la tabla si no existe.
-     */
-    public function create_table() {
-        global $wpdb;
-        $charset_collate = $wpdb->get_charset_collate();
-
-        $sql = "CREATE TABLE {$this->table_name} (
-            id bigint(20) NOT NULL AUTO_INCREMENT,
-            room_id bigint(20) NOT NULL,
-            sync_id varchar(32) NOT NULL,
-            calendar_url text NOT NULL,
-            source_name varchar(100) DEFAULT '',
-            last_sync datetime DEFAULT '0000-00-00 00:00:00',
-            sync_status varchar(20) DEFAULT 'pending',
-            last_error text,
-            created_at datetime DEFAULT CURRENT_TIMESTAMP,
-            PRIMARY KEY  (id),
-            KEY room_id (room_id),
-            KEY sync_id (sync_id)
-        ) $charset_collate;";
-
-        require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
-        dbDelta( $sql );
-    }
 }

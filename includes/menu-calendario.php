@@ -107,7 +107,7 @@ function tureserva_vista_calendario() {
 
     // 🔍 Cargar alojamientos para filtro
     $alojamientos = get_posts([
-        'post_type'      => 'tureserva_alojamiento',
+        'post_type'      => 'trs_alojamiento',
         'posts_per_page' => -1,
         'post_status'    => 'publish',
     ]);

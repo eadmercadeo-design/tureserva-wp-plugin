@@ -16,7 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 add_action( 'admin_menu', 'tureserva_menu_historial_pagos' );
 function tureserva_menu_historial_pagos() {
     add_submenu_page(
-        'edit.php?post_type=tureserva_reservas',
+        'edit.php?post_type=tureserva_reserva',
         'Historial de Pagos',
         'Historia de pagos',
         'manage_options',
@@ -31,7 +31,7 @@ function tureserva_menu_historial_pagos() {
 function tureserva_vista_historial_pagos() {
     // Buscar pagos creados en el CPT de reservas o pagos
     $pagos = get_posts(array(
-        'post_type'      => array('tureserva_reservas', 'tureserva_pagos'),
+        'post_type'      => array('tureserva_reserva', 'tureserva_pagos'),
         'post_status'    => 'publish',
         'posts_per_page' => 100,
         'meta_query'     => array(

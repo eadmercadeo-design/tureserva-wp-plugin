@@ -27,7 +27,7 @@ function tureserva_widget_ocupacion_render() {
         $count = $wpdb->get_var($wpdb->prepare("
             SELECT COUNT(ID)
             FROM $wpdb->posts
-            WHERE post_type = 'reserva'
+            WHERE post_type = 'tureserva_reserva'
             AND post_status = 'publish'
             AND post_date BETWEEN %s AND %s
         ", $inicio, $fin));
@@ -43,7 +43,7 @@ function tureserva_widget_ocupacion_render() {
         $count = $wpdb->get_var($wpdb->prepare("
             SELECT COUNT(ID)
             FROM $wpdb->posts
-            WHERE post_type = 'reserva'
+            WHERE post_type = 'tureserva_reserva'
             AND post_status = 'publish'
             AND post_date BETWEEN %s AND %s
         ", $inicio, $fin));
@@ -55,7 +55,7 @@ function tureserva_widget_ocupacion_render() {
     $total_alojamientos = (int) $wpdb->get_var("
         SELECT COUNT(ID)
         FROM $wpdb->posts
-        WHERE post_type = 'alojamiento'
+        WHERE post_type = 'trs_alojamiento'
         AND post_status = 'publish'
     ");
 

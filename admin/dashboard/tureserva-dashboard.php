@@ -46,6 +46,13 @@ function tureserva_register_dashboard_widgets() {
         __('Sincronización Cloud', 'tureserva'),
         'tureserva_widget_cloud_sync_render'
     );
+
+    // Widget: Estado de Alojamientos (Nuevo)
+    wp_add_dashboard_widget(
+        'tureserva_widget_estado_alojamientos',
+        __('Estado de Alojamientos', 'tureserva'),
+        'tureserva_widget_estado_alojamientos_render'
+    );
 }
 
 // ==========================================================
@@ -57,6 +64,7 @@ require_once __DIR__ . '/widgets/ocupacion.php';
 require_once __DIR__ . '/widgets/ingresos.php';
 require_once __DIR__ . '/widgets/llegadas-salidas.php';
 require_once __DIR__ . '/widgets/cloud-sync.php';
+require_once __DIR__ . '/widgets/estado-alojamientos.php';
 
 // ==========================================================
 // 🧩 NOTA DE EXTENSIÓN

@@ -13,8 +13,8 @@ if (!defined('ABSPATH')) exit;
 function tureserva_widget_ingresos_render() {
     global $wpdb;
 
-    // Campos de meta (puedes cambiar el nombre si usas otro)
-    $meta_total = '_tureserva_total';
+    // Campos de meta (precio total de la reserva)
+    $meta_total = '_tureserva_precio_total';
 
     // Fechas base
     $year_now  = date('Y');
@@ -26,28 +26,34 @@ function tureserva_widget_ingresos_render() {
     $month_prev = date('m', $date_prev);
 
     // Totales del mes actual
+    $fecha_inicio_actual = "$year_now-$month_now-01";
+    $fecha_fin_actual = date('Y-m-t', strtotime($fecha_inicio_actual));
+    
     $total_actual = (float) $wpdb->get_var($wpdb->prepare("
         SELECT SUM(CAST(pm.meta_value AS DECIMAL(10,2)))
         FROM $wpdb->posts p
         INNER JOIN $wpdb->postmeta pm ON p.ID = pm.post_id
-        WHERE p.post_type = 'reserva'
+        WHERE p.post_type = 'tureserva_reserva'
         AND p.post_status = 'publish'
         AND pm.meta_key = %s
         AND p.post_date >= %s
         AND p.post_date <= %s
-    ", $meta_total, "$year_now-$month_now-01", "$year_now-$month_now-31"));
+    ", $meta_total, $fecha_inicio_actual, $fecha_fin_actual));
 
     // Totales del mes anterior
+    $fecha_inicio_anterior = "$year_prev-$month_prev-01";
+    $fecha_fin_anterior = date('Y-m-t', strtotime($fecha_inicio_anterior));
+    
     $total_anterior = (float) $wpdb->get_var($wpdb->prepare("
         SELECT SUM(CAST(pm.meta_value AS DECIMAL(10,2)))
         FROM $wpdb->posts p
         INNER JOIN $wpdb->postmeta pm ON p.ID = pm.post_id
-        WHERE p.post_type = 'reserva'
+        WHERE p.post_type = 'tureserva_reserva'
         AND p.post_status = 'publish'
         AND pm.meta_key = %s
         AND p.post_date >= %s
         AND p.post_date <= %s
-    ", $meta_total, "$year_prev-$month_prev-01", "$year_prev-$month_prev-31"));
+    ", $meta_total, $fecha_inicio_anterior, $fecha_fin_anterior));
 
     // Calcular variación
     $variacion = 0;

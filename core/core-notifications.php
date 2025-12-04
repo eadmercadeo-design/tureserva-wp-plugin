@@ -20,8 +20,14 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 // 🔧 CONFIGURACIÓN PREDETERMINADA
 // =======================================================
 function tureserva_get_email_config() {
+    $admin_email_option = get_option( 'tureserva_admin_email', get_option( 'admin_email' ) );
+    
+    // Convertir lista separada por comas en array
+    $admin_emails = array_map( 'trim', explode( ',', $admin_email_option ) );
+    $admin_emails = array_filter( $admin_emails ); // Eliminar vacíos
+
     return array(
-        'admin_email' => get_option( 'tureserva_admin_email', get_option( 'admin_email' ) ),
+        'admin_email' => $admin_emails,
         'from_name'   => get_option( 'tureserva_from_name', 'TuReserva' ),
         'from_email'  => get_option( 'tureserva_from_email', get_option( 'admin_email' ) ),
     );

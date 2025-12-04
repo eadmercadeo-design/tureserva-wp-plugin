@@ -15,7 +15,7 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 add_action( 'admin_menu', 'tureserva_menu_cron' );
 function tureserva_menu_cron() {
     add_submenu_page(
-        'edit.php?post_type=tureserva_reservas',
+        'edit.php?post_type=tureserva_reserva',
         'Frecuencia de Sincronización',
         'Frecuencia de Sincronización',
         'manage_options',

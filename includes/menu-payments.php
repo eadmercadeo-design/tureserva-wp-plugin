@@ -16,7 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 add_action( 'admin_menu', 'tureserva_menu_payments' );
 function tureserva_menu_payments() {
     add_submenu_page(
-        'edit.php?post_type=tureserva_reservas', // dentro del menú "Reservas"
+        'edit.php?post_type=tureserva_reserva', // dentro del menú "Reservas"
         'Configuración de Pagos',
         'Configuración de Pagos',
         'manage_options',

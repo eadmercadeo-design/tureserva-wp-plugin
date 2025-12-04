@@ -4,7 +4,7 @@ function tureserva_get_resources() {
     if (!current_user_can('manage_options')) wp_send_json_error('Acceso denegado');
 
     $alojamientos = get_posts([
-        'post_type'      => 'tureserva_alojamiento',
+        'post_type'      => 'trs_alojamiento',
         'posts_per_page' => -1,
         'post_status'    => 'publish'
     ]);

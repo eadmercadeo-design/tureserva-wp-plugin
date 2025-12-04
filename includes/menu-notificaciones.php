@@ -19,7 +19,7 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 add_action( 'admin_menu', 'tureserva_menu_notificaciones' );
 function tureserva_menu_notificaciones() {
     add_submenu_page(
-        'edit.php?post_type=tureserva_reservas', // Menú principal → Reservas
+        'edit.php?post_type=tureserva_reserva', // Menú principal → Reservas
         'Notificaciones',
         'Notificaciones',
         'manage_options',
@@ -38,7 +38,7 @@ function tureserva_panel_notificaciones() {
     if ( isset( $_POST['tureserva_guardar_notificaciones'] ) && check_admin_referer( 'tureserva_save_notif', 'tureserva_nonce' ) ) {
 
         // 📨 Correo
-        update_option( 'tureserva_admin_email', sanitize_email( $_POST['tureserva_admin_email'] ?? '' ) );
+        update_option( 'tureserva_admin_email', sanitize_text_field( $_POST['tureserva_admin_email'] ?? '' ) );
         update_option( 'tureserva_from_name', sanitize_text_field( $_POST['tureserva_from_name'] ?? '' ) );
         update_option( 'tureserva_from_email', sanitize_email( $_POST['tureserva_from_email'] ?? '' ) );
 
@@ -51,33 +51,34 @@ function tureserva_panel_notificaciones() {
         update_option( 'tureserva_email_nueva_reserva', wp_kses_post( $_POST['tureserva_email_nueva_reserva'] ?? '' ) );
         update_option( 'tureserva_email_confirmada', wp_kses_post( $_POST['tureserva_email_confirmada'] ?? '' ) );
         update_option( 'tureserva_email_cancelada', wp_kses_post( $_POST['tureserva_email_cancelada'] ?? '' ) );
-
-        echo '<div class="updated"><p>✅ Configuración de notificaciones guardada correctamente.</p></div>';
     }
 
-    // Obtener valores actuales
-    $admin_email     = get_option( 'tureserva_admin_email', get_option( 'admin_email' ) );
-    $from_name       = get_option( 'tureserva_from_name', 'TuReserva Hotel' );
-    $from_email      = get_option( 'tureserva_from_email', get_option( 'admin_email' ) );
+    // Obtener valores
+    $admin_email = get_option( 'tureserva_admin_email', get_option( 'admin_email' ) );
+    $from_name   = get_option( 'tureserva_from_name', 'TuReserva' );
+    $from_email  = get_option( 'tureserva_from_email', get_option( 'admin_email' ) );
+
     $whatsapp_enable = get_option( 'tureserva_whatsapp_enable', 0 );
     $whatsapp_url    = get_option( 'tureserva_whatsapp_api_url', '' );
     $whatsapp_token  = get_option( 'tureserva_whatsapp_token', '' );
 
-    $email_nueva     = get_option( 'tureserva_email_nueva_reserva', 'Gracias por tu reserva, {nombre_cliente}. Tu solicitud ha sido recibida.' );
-    $email_conf      = get_option( 'tureserva_email_confirmada', 'Tu reserva para {alojamiento} ha sido confirmada. Te esperamos desde {check_in}.' );
-    $email_cancel    = get_option( 'tureserva_email_cancelada', 'Lamentamos informarte que tu reserva ha sido cancelada.' );
+    $email_nueva  = get_option( 'tureserva_email_nueva_reserva', '' );
+    $email_conf   = get_option( 'tureserva_email_confirmada', '' );
+    $email_cancel = get_option( 'tureserva_email_cancelada', '' );
     ?>
 
     <div class="wrap">
-        <h1>📩 Configuración de Notificaciones — TuReserva</h1>
+        <h1>🔔 Configuración de Notificaciones</h1>
         <form method="post">
             <?php wp_nonce_field( 'tureserva_save_notif', 'tureserva_nonce' ); ?>
 
-            <h2 class="title">📧 Configuración de Correos</h2>
             <table class="form-table">
                 <tr>
-                    <th scope="row"><label for="tureserva_admin_email">Correo del administrador</label></th>
-                    <td><input type="email" name="tureserva_admin_email" id="tureserva_admin_email" value="<?php echo esc_attr( $admin_email ); ?>" class="regular-text"></td>
+                    <th scope="row"><label for="tureserva_admin_email">Correo(s) del administrador (separados por comas)</label></th>
+                    <td>
+                        <textarea name="tureserva_admin_email" id="tureserva_admin_email" rows="2" class="large-text"><?php echo esc_textarea( $admin_email ); ?></textarea>
+                        <p class="description">Recibirá notificaciones de nuevas reservas. Puede añadir varios separados por comas.</p>
+                    </td>
                 </tr>
                 <tr>
                     <th scope="row"><label for="tureserva_from_name">Nombre del remitente</label></th>
