@@ -91,41 +91,58 @@ function tureserva_generar_reporte( $args = array() ) {
         if ( $check_in && $check_out ) {
             $ocupacion_dias += max( 0, floor( ( $check_out - $check_in ) / DAY_IN_SECONDS ) );
         }
+
     }
 
-    // cálculo promedio
-    $promedio_reserva = $total_reservas > 0 ? $ingresos_totales / $total_reservas : 0;
-
-    // resultado
     return array(
-        'total_reservas'   => $total_reservas,
-        'ingresos_totales' => round( $ingresos_totales, 2 ),
-        'promedio_reserva' => round( $promedio_reserva, 2 ),
-        'ocupacion_dias'   => $ocupacion_dias,
-        'por_estado'       => $detalle_por_estado,
-        'rango'            => array(
-            'inicio' => $args['fecha_inicio'],
-            'fin'    => $args['fecha_fin']
-        )
+        'total_reservas' => $total_reservas,
+        'ingresos'       => $ingresos_totales,
+        'ocupacion'      => $ocupacion_dias,
+        'estados'        => $detalle_por_estado
     );
 }
 
 // =======================================================
-// 📈 ENDPOINT AJAX PARA CONSULTAS DESDE ADMIN
+// 📈 ENDPOINT AJAX: reservas detalladas (mock)
 // =======================================================
-add_action( 'wp_ajax_tureserva_get_reporte', 'tureserva_get_reporte' );
-
-function tureserva_get_reporte() {
+add_action( 'wp_ajax_tureserva_get_reservas_report', 'tureserva_get_reservas_report' );
+function tureserva_get_reservas_report() {
     if ( ! current_user_can( 'manage_options' ) ) wp_send_json_error( 'Sin permisos' );
-
-    $args = array(
-        'fecha_inicio' => sanitize_text_field( $_GET['inicio'] ?? date( 'Y-m-01' ) ),
-        'fecha_fin'    => sanitize_text_field( $_GET['fin'] ?? date( 'Y-m-t' ) ),
-        'alojamiento'  => intval( $_GET['alojamiento'] ?? 0 ),
-        'estado'       => sanitize_text_field( $_GET['estado'] ?? '' ),
+    $data = array(
+        'columns' => array( 'ID', 'Guest', 'Check-in', 'Check-out', 'Room', 'Status', 'Revenue' ),
+        'rows'    => array(
+            array( 1, 'John Doe', '2025-12-01', '2025-12-05', 'Suite', 'confirmada', 500 ),
+            array( 2, 'Jane Smith', '2025-12-03', '2025-12-04', 'Standard', 'pendiente', 150 ),
+        ),
     );
-
-    $reporte = tureserva_generar_reporte( $args );
-
-    wp_send_json_success( $reporte );
+    wp_send_json_success( $data );
 }
+
+// =======================================================
+// 📈 ENDPOINT AJAX: reporte financiero (mock)
+// =======================================================
+add_action( 'wp_ajax_tureserva_get_financial_report', 'tureserva_get_financial_report' );
+function tureserva_get_financial_report() {
+    if ( ! current_user_can( 'manage_options' ) ) wp_send_json_error( 'Sin permisos' );
+    $data = array(
+        'kpis' => array(
+            'gross_revenue' => 12000,
+            'net_revenue'   => 9500,
+            'taxes'         => 1500,
+            'cleaning_fees' => 300,
+            'commission'    => 800,
+        ),
+        'revenue_by_room' => array(
+            'Suite'    => 6000,
+            'Standard' => 4000,
+            'Deluxe'   => 2000,
+        ),
+        'monthly_trend' => array(
+            '2025-01' => 800,
+            '2025-02' => 900,
+            '2025-03' => 1000,
+        ),
+    );
+    wp_send_json_success( $data );
+}
+

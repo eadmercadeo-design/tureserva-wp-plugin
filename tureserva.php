@@ -18,6 +18,13 @@ define('TURESERVA_PATH', plugin_dir_path(__FILE__));
 define('TURESERVA_URL', plugin_dir_url(__FILE__));
 define('TURESERVA_MAIN_FILE', __FILE__);
 
+// =======================================================
+// 📦 CONSTANTES DE POST TYPES
+// =======================================================
+define('TURESERVA_CPT_ALOJAMIENTO', 'trs_alojamiento');
+define('TURESERVA_CPT_RESERVA', 'tureserva_reserva');
+define('TURESERVA_CPT_PAGO', 'tureserva_pagos');
+
 
 // =======================================================
 // 🚀 CARGA TEMPRANA DE CPTs (FIJADO)

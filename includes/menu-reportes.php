@@ -30,26 +30,8 @@ function tureserva_menu_reportes() {
 }
 
 // =======================================================
-// 📦 CARGAR SCRIPTS Y ESTILOS
 // =======================================================
-add_action( 'admin_enqueue_scripts', 'tureserva_reportes_assets' );
-function tureserva_reportes_assets( $hook ) {
-    if ( strpos( $hook, 'tureserva_reportes' ) === false ) return;
-
-    wp_enqueue_script( 'jquery' );
-    wp_enqueue_script( 'chartjs', 'https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js', array(), '4.4.1', true );
-    wp_enqueue_script( 'tureserva-reportes-js', TURESERVA_URL . 'assets/js/tureserva-reportes.js', array( 'jquery', 'chartjs' ), TURESERVA_VERSION, true );
-
-    wp_localize_script( 'tureserva-reportes-js', 'tureservaReportes', array(
-        'ajax_url' => admin_url( 'admin-ajax.php' ),
-        'nonce'    => wp_create_nonce( 'tureserva_reporte_nonce' ),
-    ));
-
-    wp_enqueue_style( 'tureserva-reportes-css', TURESERVA_URL . 'assets/css/tureserva-reportes.css', array(), TURESERVA_VERSION );
-}
-
-// =======================================================
-// 📊 INTERFAZ DEL PANEL DE REPORTES
+// 📊 CALLBACK: RENDERIZADO DEL DASHBOARD
 // =======================================================
 function tureserva_vista_reportes() {
     if ( ! current_user_can( 'manage_options' ) ) return;
@@ -65,55 +47,80 @@ function tureserva_vista_reportes() {
         <h1>📈 Reportes — TuReserva</h1>
         <p>Consulta las estadísticas de ocupación e ingresos.</p>
 
-        <form id="tureserva-filtros-reportes" style="margin-top:20px;">
-            <label><strong>Desde:</strong></label>
-            <input type="date" id="tureserva_inicio" value="<?php echo esc_attr( date('Y-m-01') ); ?>" style="margin-right:10px;">
-            <label><strong>Hasta:</strong></label>
-            <input type="date" id="tureserva_fin" value="<?php echo esc_attr( date('Y-m-t') ); ?>" style="margin-right:10px;">
+        <!-- Tab navigation -->
+        <div class="tureserva-tabs">
+            <button class="active" data-tab="dashboard">Dashboard</button>
+            <button data-tab="reservations">Reservas</button>
+            <button data-tab="financial">Finanzas</button>
+            <button data-tab="exports">Exportar</button>
+        </div>
 
-            <label><strong>Alojamiento:</strong></label>
-            <select id="tureserva_alojamiento" style="min-width:200px;margin-right:10px;">
-                <option value="0">Todos</option>
-                <?php foreach ( $alojamientos as $a ) : ?>
-                    <option value="<?php echo esc_attr( $a->ID ); ?>"><?php echo esc_html( $a->post_title ); ?></option>
-                <?php endforeach; ?>
-            </select>
+        <!-- Dashboard Tab -->
+        <div id="dashboard" class="tureserva-tab-content active">
+            <form id="tureserva-filtros-reportes" style="margin-top:20px;">
+                <label><strong>Desde:</strong></label>
+                <input type="date" id="tureserva_inicio" value="<?php echo esc_attr( date('Y-m-01') ); ?>" style="margin-right:10px;">
+                <label><strong>Hasta:</strong></label>
+                <input type="date" id="tureserva_fin" value="<?php echo esc_attr( date('Y-m-t') ); ?>" style="margin-right:10px;">
 
-            <label><strong>Estado:</strong></label>
-            <select id="tureserva_estado" style="min-width:160px;margin-right:10px;">
-                <option value="">Todos</option>
-                <option value="confirmada">Confirmada</option>
-                <option value="pendiente">Pendiente</option>
-                <option value="cancelada">Cancelada</option>
-            </select>
+                <label><strong>Alojamiento:</strong></label>
+                <select id="tureserva_alojamiento" style="min-width:200px;margin-right:10px;">
+                    <option value="0">Todos</option>
+                    <?php foreach ( $alojamientos as $a ) : ?>
+                        <option value="<?php echo esc_attr( $a->ID ); ?>"><?php echo esc_html( $a->post_title ); ?></option>
+                    <?php endforeach; ?>
+                </select>
 
-            <button type="button" id="tureserva-boton-reporte" class="button button-primary">📊 Generar reporte</button>
-        </form>
+                <label><strong>Estado:</strong></label>
+                <select id="tureserva_estado" style="min-width:160px;margin-right:10px;">
+                    <option value="">Todos</option>
+                    <option value="confirmada">Confirmada</option>
+                    <option value="pendiente">Pendiente</option>
+                    <option value="cancelada">Cancelada</option>
+                </select>
 
-        <hr style="margin:20px 0;">
+                <button type="button" id="tureserva-boton-reporte" class="button button-primary">📊 Generar reporte</button>
+            </form>
 
-        <div id="tureserva-resultados" style="display:none;">
-            <h2>📅 Resultados del periodo</h2>
-            <div class="tureserva-stats">
-                <div class="stat-box">
-                    <h3 id="total-reservas">0</h3>
-                    <p>Total de Reservas</p>
+            <hr style="margin:20px 0;"/>
+
+            <div id="tureserva-resultados" style="display:none;">
+                <h2>📅 Resultados del periodo</h2>
+                <div class="tureserva-stats">
+                    <div class="stat-box">
+                        <h3 id="total-reservas">0</h3>
+                        <p>Total de Reservas</p>
+                    </div>
+                    <div class="stat-box">
+                        <h3 id="ingresos-totales">$0.00</h3>
+                        <p>Ingresos Totales</p>
+                    </div>
+                    <div class="stat-box">
+                        <h3 id="promedio-reserva">$0.00</h3>
+                        <p>Promedio por Reserva</p>
+                    </div>
+                    <div class="stat-box">
+                        <h3 id="ocupacion-dias">0</h3>
+                        <p>Días Ocupados</p>
+                    </div>
                 </div>
-                <div class="stat-box">
-                    <h3 id="ingresos-totales">$0.00</h3>
-                    <p>Ingresos Totales</p>
-                </div>
-                <div class="stat-box">
-                    <h3 id="promedio-reserva">$0.00</h3>
-                    <p>Promedio por Reserva</p>
-                </div>
-                <div class="stat-box">
-                    <h3 id="ocupacion-dias">0</h3>
-                    <p>Días Ocupados</p>
-                </div>
+                <canvas id="tureserva-chart" width="400" height="160" style="margin-top:30px;"></canvas>
             </div>
+        </div>
 
-            <canvas id="tureserva-chart" width="400" height="160" style="margin-top:30px;"></canvas>
+        <!-- Reservations Tab -->
+        <div id="reservations" class="tureserva-tab-content">
+            <p>📋 Aquí irá la tabla de reservas con filtros avanzados (próximamente).</p>
+        </div>
+
+        <!-- Financial Tab -->
+        <div id="financial" class="tureserva-tab-content">
+            <p>💰 Aquí se mostrarán KPIs financieros y gráficos de ingresos (próximamente).</p>
+        </div>
+
+        <!-- Export Tab -->
+        <div id="exports" class="tureserva-tab-content">
+            <p>📤 Herramientas de exportación y logs del sistema (próximamente).</p>
         </div>
     </div>
     <?php

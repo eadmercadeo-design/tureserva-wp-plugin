@@ -21,25 +21,39 @@ if (!current_user_can('manage_options')) {
 // 📦 Encolar estilos y scripts de la página
 // ==========================================================
 add_action('admin_enqueue_scripts', function ($hook) {
-    // Detectar la página de forma más confiable
-    $is_add_reserva_page = (
-        (isset($_GET['page']) && $_GET['page'] === 'tureserva-add-reserva') ||
-        strpos($hook, 'tureserva-add-reserva') !== false ||
-        (isset($_GET['post_type']) && $_GET['post_type'] === 'tureserva_reserva' && isset($_GET['page']) && $_GET['page'] === 'tureserva-add-reserva')
-    );
+    // Detectar la página de forma más confiable usando get_current_screen
+    $screen = get_current_screen();
+    $is_add_reserva_page = false;
+    
+    if ($screen) {
+        // El hook para submenús bajo CPTs suele ser: {post_type}_page_{page_slug}
+        $is_add_reserva_page = (
+            strpos($hook, 'tureserva_reserva_page_tureserva-add-reserva') !== false ||
+            strpos($hook, 'tureserva-add-reserva') !== false ||
+            (isset($screen->id) && strpos($screen->id, 'tureserva-add-reserva') !== false)
+        );
+    }
+    
+    // También verificar por GET parameter
+    if (!$is_add_reserva_page) {
+        $is_add_reserva_page = (
+            (isset($_GET['page']) && $_GET['page'] === 'tureserva-add-reserva') ||
+            (isset($_GET['post_type']) && $_GET['post_type'] === 'tureserva_reserva' && isset($_GET['page']) && $_GET['page'] === 'tureserva-add-reserva')
+        );
+    }
     
     if (!$is_add_reserva_page) return;
 
     wp_enqueue_style(
         'tureserva-add-reserva',
-        TURESERVA_URL . 'assets/css/admin-add-reserva.css?v=7',
+        TURESERVA_URL . 'assets/css/admin-add-reserva.css?v=8',
         [],
         null
     );
 
     wp_enqueue_script(
         'tureserva-add-reserva',
-        TURESERVA_URL . 'assets/js/admin-add-reserva.js?v=5',
+        TURESERVA_URL . 'assets/js/admin-add-reserva.js?v=6',
         ['jquery'],
         null,
         true
@@ -49,7 +63,7 @@ add_action('admin_enqueue_scripts', function ($hook) {
         'ajax_url' => admin_url('admin-ajax.php'),
         'nonce'    => wp_create_nonce('tureserva_add_reserva_nonce'),
     ]);
-});
+}, 999); // Prioridad alta para asegurar que se ejecute
 
 
 // ==========================================================
@@ -233,4 +247,184 @@ add_action('admin_enqueue_scripts', function ($hook) {
         margin-left: 10px;
     }
     </style>
+    
+    <!-- Script inline como fallback para asegurar que funcione -->
+    <script type="text/javascript">
+    (function() {
+        console.log('🔍 [TuReserva] Verificando carga de scripts...');
+        
+        // Esperar a que jQuery esté disponible
+        function initReservaScript() {
+            if (typeof jQuery === 'undefined') {
+                console.warn('⚠️ [TuReserva] jQuery no disponible, reintentando en 100ms...');
+                setTimeout(initReservaScript, 100);
+                return;
+            }
+            
+            var $ = jQuery;
+            console.log('✅ [TuReserva] jQuery disponible, inicializando eventos inline...');
+            
+            // Verificar que el script externo se haya cargado
+            if (typeof TuReservaAddReserva === 'undefined') {
+                console.warn('⚠️ [TuReserva] TuReservaAddReserva no disponible, usando valores por defecto');
+                window.TuReservaAddReserva = {
+                    ajax_url: '<?php echo esc_js(admin_url('admin-ajax.php')); ?>',
+                    nonce: '<?php echo esc_js(wp_create_nonce('tureserva_add_reserva_nonce')); ?>'
+                };
+            }
+            
+            // Verificar que los botones existan
+            var $botones = $('.crear-reserva');
+            console.log('🔍 [TuReserva] Botones encontrados (inline):', $botones.length);
+            
+            if ($botones.length === 0) {
+                console.error('❌ [TuReserva] No se encontraron botones .crear-reserva');
+                return;
+            }
+            
+            // Verificar que el modal exista
+            var $modal = $('#tureserva-modal');
+            if ($modal.length === 0) {
+                console.error('❌ [TuReserva] Modal no encontrado en el DOM');
+                return;
+            }
+            console.log('✅ [TuReserva] Modal encontrado en el DOM');
+            
+            // Evento de click directo (más confiable)
+            $botones.off('click.tureserva').on('click.tureserva', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('🖱️ [TuReserva] Click detectado (inline)');
+                
+                var id = $(this).data('id');
+                var nombre = $(this).data('nombre');
+                
+                console.log('📋 [TuReserva] Datos del alojamiento:', {id: id, nombre: nombre});
+                
+                if (!id) {
+                    console.error('❌ [TuReserva] No se encontró el ID del alojamiento');
+                    alert('Error: No se pudo identificar el alojamiento.');
+                    return;
+                }
+                
+                if ($modal.length === 0) {
+                    console.error('❌ [TuReserva] Modal no existe');
+                    alert('Error: No se encontró el formulario de reserva.');
+                    return;
+                }
+                
+                $('#modal_alojamiento_id').val(id);
+                $('#modal_alojamiento_nombre').text(nombre);
+                
+                var hoy = new Date().toISOString().split('T')[0];
+                $('#modal_check_in').attr('min', hoy);
+                $('#modal_check_out').attr('min', hoy);
+                
+                $('#tureserva-crear-reserva-form')[0].reset();
+                $('#modal_alojamiento_id').val(id);
+                $('#modal_alojamiento_nombre').text(nombre);
+                $('#modal_adults').val('2');
+                $('#modal_children').val('0');
+                
+                console.log('✅ [TuReserva] Mostrando modal (inline)...');
+                $modal.css('display', 'block').fadeIn(300);
+                console.log('✅ [TuReserva] Modal visible:', $modal.is(':visible'));
+            });
+            
+            // Cerrar modal
+            $(document).off('click.tureserva', '.close-modal, .cancel-modal').on('click.tureserva', '.close-modal, .cancel-modal', function(e) {
+                e.preventDefault();
+                console.log('🔴 [TuReserva] Cerrando modal...');
+                $('#tureserva-modal').fadeOut(300);
+            });
+            
+            // Validar que check_out sea posterior a check_in
+            $(document).off('change.tureserva', '#modal_check_in').on('change.tureserva', '#modal_check_in', function() {
+                var checkIn = $(this).val();
+                if (checkIn) {
+                    var fechaCheckIn = new Date(checkIn);
+                    fechaCheckIn.setDate(fechaCheckIn.getDate() + 1);
+                    var fechaMinima = fechaCheckIn.toISOString().split('T')[0];
+                    $('#modal_check_out').attr('min', fechaMinima);
+                    
+                    var checkOut = $('#modal_check_out').val();
+                    if (checkOut && checkOut <= checkIn) {
+                        $('#modal_check_out').val('');
+                    }
+                }
+            });
+            
+            // Submit del formulario
+            $('#tureserva-crear-reserva-form').off('submit.tureserva').on('submit.tureserva', function(e) {
+                e.preventDefault();
+                console.log('📤 [TuReserva] Enviando formulario (inline)...');
+                
+                var data = {
+                    action: 'tureserva_create_reservation',
+                    security: TuReservaAddReserva.nonce,
+                    alojamiento_id: $('#modal_alojamiento_id').val(),
+                    check_in: $('#modal_check_in').val(),
+                    check_out: $('#modal_check_out').val(),
+                    adults: $('#modal_adults').val(),
+                    children: $('#modal_children').val(),
+                    cliente_nombre: $('#cliente_nombre').val(),
+                    cliente_email: $('#cliente_email').val(),
+                    cliente_telefono: $('#cliente_telefono').val(),
+                    servicios: []
+                };
+                
+                $('input[name="servicios[]"]:checked').each(function() {
+                    data.servicios.push($(this).val());
+                });
+                
+                if (!data.check_in || !data.check_out) {
+                    alert('Por favor, completa las fechas de llegada y salida.');
+                    return;
+                }
+                
+                if (new Date(data.check_out) <= new Date(data.check_in)) {
+                    alert('La fecha de salida debe ser posterior a la fecha de llegada.');
+                    return;
+                }
+                
+                var $btn = $(this).find('button[type="submit"]');
+                $btn.prop('disabled', true).text('Procesando...');
+                
+                console.log('📤 [TuReserva] Enviando datos:', data);
+                
+                $.post(TuReservaAddReserva.ajax_url, data, function(response) {
+                    console.log('📥 [TuReserva] Respuesta recibida:', response);
+                    if (response.success) {
+                        alert(response.data.message || 'Reserva creada exitosamente.');
+                        window.location.href = response.data.redirect || 'edit.php?post_type=tureserva_reserva';
+                    } else {
+                        alert('Error: ' + (response.data || 'Error desconocido'));
+                        $btn.prop('disabled', false).text('Confirmar Reserva');
+                    }
+                }).fail(function(xhr, status, error) {
+                    console.error('❌ [TuReserva] Error AJAX:', {xhr, status, error, response: xhr.responseText});
+                    alert('Error de conexión. Por favor, intenta nuevamente.');
+                    $btn.prop('disabled', false).text('Confirmar Reserva');
+                });
+            });
+            
+            // Cerrar modal si se hace clic fuera
+            $(document).off('click.tureserva', '#tureserva-modal').on('click.tureserva', '#tureserva-modal', function(e) {
+                if ($(e.target).is('#tureserva-modal')) {
+                    console.log('🔴 [TuReserva] Click fuera del modal, cerrando...');
+                    $('#tureserva-modal').fadeOut(300);
+                }
+            });
+            
+            console.log('✅ [TuReserva] Script inline inicializado correctamente');
+        }
+        
+        // Iniciar cuando el DOM esté listo
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initReservaScript);
+        } else {
+            initReservaScript();
+        }
+    })();
+    </script>
 </div>

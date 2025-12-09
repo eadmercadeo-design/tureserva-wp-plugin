@@ -1,0 +1,95 @@
+/* Modern Reports Module CSS */
+/* Design System Variables */
+:root {
+    --accent-blue: #1e90ff;
+    --accent-teal: #20c997;
+    --accent-green: #28a745;
+    --bg-neutral: #f9fafb;
+    --card-bg: #ffffff;
+    --text-primary: #212529;
+    --text-secondary: #6c757d;
+    --border-radius: 12px;
+    --shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    --font-family: 'Inter', 'Roboto', sans-serif;
+}
+
+/* Dark mode */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg-neutral: #1e1e1e;
+        --card-bg: #2c2c2c;
+        --text-primary: #f1f1f1;
+        --text-secondary: #b0b0b0;
+    }
+}
+
+.wrap {
+    font-family: var(--font-family);
+    background: var(--bg-neutral);
+    padding: 20px;
+}
+
+.tureserva-tabs {
+    display: flex;
+    border-bottom: 1px solid #e0e0e0;
+    margin-bottom: 20px;
+}
+
+.tureserva-tabs button {
+    background: none;
+    border: none;
+    padding: 10px 20px;
+    cursor: pointer;
+    font-weight: 500;
+    color: var(--text-secondary);
+}
+
+.tureserva-tabs button.active {
+    color: var(--text-primary);
+    border-bottom: 3px solid var(--accent-blue);
+}
+
+.tureserva-tab-content {
+    display: none;
+}
+
+.tureserva-tab-content.active {
+    display: block;
+}
+
+.stat-box {
+    background: var(--card-bg);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow);
+    padding: 15px;
+    text-align: center;
+    margin: 5px;
+}
+
+.stat-box h3 {
+    margin: 0;
+    font-size: 1.5rem;
+    color: var(--text-primary);
+}
+
+.stat-box p {
+    margin: 5px 0 0;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+/* Responsive grid for stats */
+.tureserva-stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+/* Chart container */
+#tureserva-chart {
+    max-width: 100%;
+    background: var(--card-bg);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow);
+    padding: 10px;
+}
