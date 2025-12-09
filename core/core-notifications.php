@@ -19,15 +19,30 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 // =======================================================
 // 🔧 CONFIGURACIÓN PREDETERMINADA
 // =======================================================
+// =======================================================
+// 🔧 CONFIGURACIÓN PREDETERMINADA
+// =======================================================
 function tureserva_get_email_config() {
-    $admin_email_option = get_option( 'tureserva_admin_email', get_option( 'admin_email' ) );
+    // 1. Intentar obtener la nueva opción plural
+    $admin_emails_str = get_option( 'tureserva_admin_emails' );
+    
+    // 2. Fallback a opción singular (legacy) si la nueva no existe
+    if ( false === $admin_emails_str ) {
+        $admin_emails_str = get_option( 'tureserva_admin_email' );
+    }
+
+    // 3. Fallback al email general del sitio si está vacío
+    if ( empty( $admin_emails_str ) ) {
+        $admin_emails_str = get_option( 'admin_email' );
+    }
     
     // Convertir lista separada por comas en array
-    $admin_emails = array_map( 'trim', explode( ',', $admin_email_option ) );
+    $admin_emails = array_map( 'trim', explode( ',', (string)$admin_emails_str ) );
     $admin_emails = array_filter( $admin_emails ); // Eliminar vacíos
+    $admin_emails = array_unique( $admin_emails ); // Eliminar duplicados
 
     return array(
-        'admin_email' => $admin_emails,
+        'admin_email' => $admin_emails, // Retorna array
         'from_name'   => get_option( 'tureserva_from_name', 'TuReserva' ),
         'from_email'  => get_option( 'tureserva_from_email', get_option( 'admin_email' ) ),
     );
@@ -80,7 +95,10 @@ function tureserva_notificar_nueva_reserva( $reserva_id, $data ) {
     $check_out      = date_i18n( 'd/m/Y', strtotime( $data['check_out'] ) );
 
     $precio_total   = number_format_i18n( $data['precio_total'] ?? 0, 2 );
-    $admin_email    = get_option( 'tureserva_admin_email', get_option( 'admin_email' ) );
+    
+    // Obtener emails de admin desde la configuración centralizada
+    $config = tureserva_get_email_config();
+    $admin_emails = $config['admin_email'];
 
     // ✉️ Correo al administrador
     $asunto_admin = '🔔 Nueva reserva recibida — ' . $alojamiento;
@@ -96,7 +114,11 @@ function tureserva_notificar_nueva_reserva( $reserva_id, $data ) {
         <hr>
         <p>Ver más detalles en el panel de reservas del sitio.</p>
     ";
-    tureserva_enviar_email( $admin_email, $asunto_admin, $mensaje_admin );
+    
+    // Si hay emails de admin configurados, enviar
+    if ( ! empty( $admin_emails ) ) {
+        tureserva_enviar_email( $admin_emails, $asunto_admin, $mensaje_admin );
+    }
 
     // ✉️ Correo al cliente
     $asunto_cliente = 'TuReserva — Confirmación de solicitud de reserva';

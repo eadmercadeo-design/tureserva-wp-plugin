@@ -79,6 +79,30 @@ function tureserva_render_ajustes_generales_page() {
     // Guardar Ajustes
     if (isset($_POST['tureserva_ajustes_nonce']) && wp_verify_nonce($_POST['tureserva_ajustes_nonce'], 'tureserva_ajustes_action')) {
         
+        // 0. Validación específica para Correos Admin
+        if (isset($_POST['tureserva_admin_emails'])) {
+            $raw_emails = $_POST['tureserva_admin_emails'];
+            $emails_array = explode(',', $raw_emails);
+            $valid_emails = array();
+            $email_errors = array();
+            
+            foreach ($emails_array as $email) {
+                $email = trim($email);
+                if (is_email($email)) {
+                    $valid_emails[] = $email;
+                } elseif (!empty($email)) {
+                    $email_errors[] = $email;
+                }
+            }
+            
+            // Sobrescribir el POST con el string limpio para que el bucle genérico lo guarde
+            $_POST['tureserva_admin_emails'] = implode(', ', $valid_emails);
+
+            if (!empty($email_errors)) {
+                echo '<div class="notice notice-warning is-dismissible"><p>⚠️ Algunos correos no eran válidos y se omitieron: ' . esc_html(implode(', ', $email_errors)) . '</p></div>';
+            }
+        }
+
         // 1. Guardar opciones genéricas (tureserva_*)
         foreach ($_POST as $key => $value) {
             if (strpos($key, 'tureserva_') === 0) {

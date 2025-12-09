@@ -16,10 +16,17 @@ function tureserva_widget_llegadas_salidas_render() {
     $meta_checkin  = '_tureserva_checkin';
     $meta_checkout = '_tureserva_checkout';
 
+    // Obtener días seleccionados (por defecto 30)
+    $dias = isset($_GET['tr_dias']) ? intval($_GET['tr_dias']) : 30;
+    if (!in_array($dias, [7, 15, 30])) {
+        $dias = 30; // Valor por defecto
+    }
+
     $hoy = date('Y-m-d');
-    $limite = date('Y-m-d', strtotime('+7 days'));
+    $limite = date('Y-m-d', strtotime("+$dias days"));
 
     // Consultar próximas llegadas (check-in)
+    // Aumentamos el LIMIT a 20 para cubrir mejor el mes
     $llegadas = $wpdb->get_results($wpdb->prepare("
         SELECT p.ID, p.post_title, pm.meta_value AS fecha_checkin
         FROM $wpdb->posts p
@@ -29,7 +36,7 @@ function tureserva_widget_llegadas_salidas_render() {
         AND pm.meta_key = %s
         AND pm.meta_value BETWEEN %s AND %s
         ORDER BY pm.meta_value ASC
-        LIMIT 10
+        LIMIT 20
     ", $meta_checkin, $hoy, $limite));
 
     // Consultar próximas salidas (check-out)
@@ -42,8 +49,11 @@ function tureserva_widget_llegadas_salidas_render() {
         AND pm.meta_key = %s
         AND pm.meta_value BETWEEN %s AND %s
         ORDER BY pm.meta_value ASC
-        LIMIT 10
+        LIMIT 20
     ", $meta_checkout, $hoy, $limite));
+
+    // URL base para los filtros (mantenemos otros parámetros si existen)
+    $base_url = remove_query_arg('tr_dias');
     ?>
 
     <style>
@@ -72,7 +82,32 @@ function tureserva_widget_llegadas_salidas_render() {
     }
     .tureserva-badge.in { background-color: #00b894; }
     .tureserva-badge.out { background-color: #0984e3; }
+    .tureserva-filtro-dias {
+        margin-bottom: 15px;
+        text-align: right;
+        font-size: 13px;
+    }
+    .tureserva-filtro-dias a {
+        text-decoration: none;
+        padding: 3px 8px;
+        border-radius: 4px;
+        border: 1px solid #ccc;
+        color: #555;
+        margin-left: 5px;
+    }
+    .tureserva-filtro-dias a.activo {
+        background-color: #2271b1;
+        color: #fff;
+        border-color: #2271b1;
+    }
     </style>
+
+    <div class="tureserva-filtro-dias">
+        Ver: 
+        <a href="<?php echo esc_url(add_query_arg('tr_dias', 7, $base_url)); ?>" class="<?php echo $dias === 7 ? 'activo' : ''; ?>">7 días</a>
+        <a href="<?php echo esc_url(add_query_arg('tr_dias', 15, $base_url)); ?>" class="<?php echo $dias === 15 ? 'activo' : ''; ?>">15 días</a>
+        <a href="<?php echo esc_url(add_query_arg('tr_dias', 30, $base_url)); ?>" class="<?php echo $dias === 30 ? 'activo' : ''; ?>">30 días</a>
+    </div>
 
     <div style="display:flex; gap:20px; flex-wrap:wrap;">
         <div style="flex:1; min-width:300px;">
@@ -101,7 +136,7 @@ function tureserva_widget_llegadas_salidas_render() {
                     </tbody>
                 </table>
             <?php else : ?>
-                <p>No hay llegadas programadas en los próximos 7 días.</p>
+                <p>No hay llegadas en los próximos <?php echo $dias; ?> días.</p>
             <?php endif; ?>
         </div>
 
@@ -131,7 +166,7 @@ function tureserva_widget_llegadas_salidas_render() {
                     </tbody>
                 </table>
             <?php else : ?>
-                <p>No hay salidas programadas en los próximos 7 días.</p>
+                <p>No hay salidas en los próximos <?php echo $dias; ?> días.</p>
             <?php endif; ?>
         </div>
     </div>

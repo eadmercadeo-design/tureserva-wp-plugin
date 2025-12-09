@@ -21,6 +21,26 @@ $default_cancel_body = "Hola Admin,\n\nLa reserva #%booking_id% ha sido CANCELAD
 ?>
 
 <div class="tureserva-email-config">
+
+    <!-- 0. Correos Generales (Destinatarios) -->
+    <?php 
+    // Obtener valor actual (con fallback a legacy o default)
+    $msg_admin_emails = get_option('tureserva_admin_emails');
+    if (false === $msg_admin_emails) {
+        $msg_admin_emails = get_option('tureserva_admin_email', '');
+    }
+    ?>
+    <div class="tureserva-card">
+        <h3>📬 Correo(s) del Administrador</h3>
+        <p style="margin-bottom:15px; color:#666;">
+            Direcciones de email que recibirán las notificaciones del administrador. <br>
+            Puedes separar múltiples correos por coma.
+        </p>
+        <div class="ts-form-group">
+            <textarea name="tureserva_admin_emails" style="width:100%; min-height:60px;" placeholder="admin@hotel.com, reservas@hotel.com"><?php echo esc_textarea($msg_admin_emails); ?></textarea>
+            <span class="ts-helper">Si se deja vacío, se usará el email general de WordPress: <?php echo get_option('admin_email'); ?></span>
+        </div>
+    </div>
     
     <!-- 1. Reserva Pendiente -->
     <?php tureserva_render_email_card(
