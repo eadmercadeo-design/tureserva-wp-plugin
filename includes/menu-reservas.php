@@ -75,6 +75,18 @@ function tureserva_admin_menu_reservas()
     );
 
     // =======================================================
+    // 🔔 Notificaciones
+    // =======================================================
+    add_submenu_page(
+        'edit.php?post_type=tureserva_reserva',
+        'Notificaciones',
+        'Notificaciones',
+        'manage_options',
+        'tureserva_notificaciones',
+        'tureserva_panel_notificaciones'
+    );
+
+    // =======================================================
     // 👥 Clientes
     // =======================================================
     add_submenu_page(

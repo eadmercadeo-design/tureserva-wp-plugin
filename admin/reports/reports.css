@@ -1,0 +1,143 @@
+/* Estilos Módulo Reportes TuReserva */
+.tureserva-reports-wrap {
+    background: #f0f0f1;
+    padding: 20px;
+    max-width: 1200px;
+}
+
+.tureserva-reports-content {
+    background: #fff;
+    border: 1px solid #c3c4c7;
+    border-top: none;
+    padding: 20px;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, .04);
+}
+
+/* KPIs */
+.tureserva-kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.kpi-card {
+    background: #fff;
+    border: 1px solid #dcdcde;
+    border-radius: 4px;
+    /* SaaS style rounded */
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    /* Soft shadow */
+    transition: transform 0.2s ease;
+}
+
+.kpi-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.kpi-card .dashicons {
+    font-size: 32px;
+    width: 32px;
+    height: 32px;
+    margin-right: 15px;
+    color: #2271b1;
+    /* WP Blue */
+}
+
+.kpi-data h3 {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 600;
+    color: #1d2327;
+}
+
+.kpi-data small {
+    color: #646970;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Financial KPIs variants */
+.tureserva-kpi-grid.financial .kpi-card {
+    display: block;
+    text-align: center;
+}
+
+.kpi-card.success h2 {
+    color: #00a32a;
+    margin: 5px 0 0;
+}
+
+.kpi-card.primary h2 {
+    color: #2271b1;
+    margin: 5px 0 0;
+}
+
+.kpi-card.warning h2 {
+    color: #dba617;
+    margin: 5px 0 0;
+}
+
+.kpi-card.info h2 {
+    color: #72aee6;
+    margin: 5px 0 0;
+}
+
+
+/* Charts */
+.tureserva-charts-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.chart-container {
+    background: #fff;
+    border: 1px solid #dcdcde;
+    border-radius: 4px;
+    padding: 20px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.chart-container.large {
+    width: 100%;
+}
+
+.chart-container.full {
+    width: 100%;
+}
+
+.chart-container.half {
+    width: calc(50% - 10px);
+}
+
+@media (max-width: 782px) {
+    .chart-container.half {
+        width: 100%;
+    }
+}
+
+/* Controls & Filters */
+.tureserva-dashboard-controls,
+.tureserva-filters-bar {
+    background: #fff;
+    padding: 15px;
+    border-bottom: 1px solid #dcdcde;
+    margin-bottom: 20px;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    border-radius: 4px;
+}
+
+.tureserva-select,
+.tureserva-date {
+    height: 30px;
+    line-height: normal;
+}
