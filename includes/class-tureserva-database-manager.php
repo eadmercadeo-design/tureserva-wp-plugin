@@ -17,6 +17,33 @@ class TuReserva_Database_Manager {
 
         $this->create_sync_urls_table();
         $this->create_sync_log_table();
+        $this->create_api_tokens_table();
+    }
+
+    /**
+     * Create tureserva_api_tokens table.
+     */
+    private function create_api_tokens_table() {
+        global $wpdb;
+        $table_name = $wpdb->prefix . 'tureserva_api_tokens';
+        $charset_collate = $wpdb->get_charset_collate();
+
+        $sql = "CREATE TABLE $table_name (
+            id bigint(20) NOT NULL AUTO_INCREMENT,
+            name varchar(255) NOT NULL,
+            token_prefix varchar(10) NOT NULL,
+            token_hash varchar(64) NOT NULL,
+            scopes text NOT NULL,
+            status varchar(20) DEFAULT 'active',
+            expires_at datetime DEFAULT NULL,
+            last_used_at datetime DEFAULT NULL,
+            created_at datetime DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY  (id),
+            KEY token_hash (token_hash),
+            KEY status (status)
+        ) $charset_collate;";
+
+        dbDelta( $sql );
     }
 
     /**

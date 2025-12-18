@@ -1,10 +1,9 @@
 <?php
 /**
  * ==========================================================
- * PANEL ADMINISTRATIVO: Configuración de Pagos (Stripe)
+ * PANEL ADMINISTRATIVO: Configuración de Pagos
  * ==========================================================
- * Permite ingresar las API Keys de Stripe y definir
- * el modo de operación (Prueba o Producción).
+ * Updated to use Modular Payment System
  * ==========================================================
  */
 
@@ -13,77 +12,58 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 // =======================================================
 // 📁 REGISTRO DEL SUBMENÚ
 // =======================================================
-add_action( 'admin_menu', 'tureserva_menu_payments' );
+// =======================================================
+// 📁 REGISTRO DEL SUBMENÚ
+// =======================================================
+// [REMOVED] User requested consolidation into Alojamiento > Ajustes
+// add_action( 'admin_menu', 'tureserva_menu_payments', 30 );
 function tureserva_menu_payments() {
+    /* 
     add_submenu_page(
-        'edit.php?post_type=tureserva_reserva', // dentro del menú "Reservas"
+        'edit.php?post_type=tureserva_reserva',
         'Configuración de Pagos',
         'Configuración de Pagos',
         'manage_options',
         'tureserva_payments',
         'tureserva_vista_payments'
     );
+    */
 }
 
 // =======================================================
 // 💳 INTERFAZ DE CONFIGURACIÓN
 // =======================================================
 function tureserva_vista_payments() {
-    $public = get_option( 'tureserva_stripe_public_key', '' );
-    $secret = get_option( 'tureserva_stripe_secret_key', '' );
-    $mode   = get_option( 'tureserva_stripe_mode', 'test' );
-    ?>
-    <div class="wrap">
-        <h1>💳 Configuración de Pagos — Stripe</h1>
-        <p>Conecta TuReserva con <strong>Stripe</strong> para aceptar pagos con tarjeta de crédito y débito.</p>
-
-        <form method="post" action="options.php">
-            <?php settings_fields( 'tureserva_payments_group' ); ?>
-            <table class="form-table">
-                <tr>
-                    <th scope="row">Modo de operación</th>
-                    <td>
-                        <select name="tureserva_stripe_mode">
-                            <option value="test" <?php selected( $mode, 'test' ); ?>>🧪 Modo Prueba</option>
-                            <option value="live" <?php selected( $mode, 'live' ); ?>>🚀 Modo Producción</option>
-                        </select>
-                        <p class="description">Usa modo prueba mientras desarrollas o realizas pruebas internas.</p>
-                    </td>
-                </tr>
-                <tr>
-                    <th>Clave pública (Publishable Key)</th>
-                    <td>
-                        <input type="text" name="tureserva_stripe_public_key" value="<?php echo esc_attr( $public ); ?>" class="regular-text">
-                        <p class="description">Ejemplo: <code>pk_test_51MX...</code></p>
-                    </td>
-                </tr>
-                <tr>
-                    <th>Clave secreta (Secret Key)</th>
-                    <td>
-                        <input type="password" name="tureserva_stripe_secret_key" value="<?php echo esc_attr( $secret ); ?>" class="regular-text">
-                        <p class="description">Ejemplo: <code>sk_test_51MX...</code></p>
-                    </td>
-                </tr>
-            </table>
-            <?php submit_button( '💾 Guardar configuración' ); ?>
-        </form>
-
-        <?php if ( $mode === 'test' ) : ?>
-            <div style="background:#fff3cd;border-left:5px solid #ffecb5;padding:12px;margin-top:20px;">
-                ⚠️ Estás en <strong>modo prueba</strong>. Usa las tarjetas de desarrollo de Stripe, por ejemplo:
-                <code>4242 4242 4242 4242</code>, fecha futura y CVC <code>123</code>.
-            </div>
-        <?php endif; ?>
-    </div>
-    <?php
+    // Include the separate view file for cleanliness
+    $view_path = plugin_dir_path( __FILE__ ) . 'admin/pages/payments-config.php';
+    if ( file_exists( $view_path ) ) {
+        include $view_path;
+    } else {
+        echo '<div class="error"><p>Error: No se encuentra el archivo de vista de pagos.</p></div>';
+    }
 }
 
 // =======================================================
-// ⚙️ REGISTRO DE OPCIONES
+// ⚙️ REGISTRO DE OPCIONES (SETTINGS API)
 // =======================================================
 add_action( 'admin_init', 'tureserva_register_payment_settings' );
 function tureserva_register_payment_settings() {
-    register_setting( 'tureserva_payments_group', 'tureserva_stripe_public_key' );
-    register_setting( 'tureserva_payments_group', 'tureserva_stripe_secret_key' );
-    register_setting( 'tureserva_payments_group', 'tureserva_stripe_mode' );
+    // General Settings
+    register_setting( 'tureserva_payments_general_group', 'tureserva_moneda' );
+    register_setting( 'tureserva_payments_general_group', 'tureserva_simbolo_moneda' );
+
+    // Gateway Settings
+    // We register a setting array for each INTENDED gateway ID so WP handles the array save
+    // Currently hardcoded IDs for registration, could be dynamic in Manager
+    $gateway_ids = ['stripe', 'paypal', 'manual'];
+    
+    foreach ( $gateway_ids as $id ) {
+        register_setting( 'tureserva_payment_gateways_group', 'tureserva_payment_settings_' . $id );
+        
+        // Also register individual legacy options if we want to sync them?
+        // Or we just migrate them. For now, separate is safer.
+    }
+
+    // For backward compatibility (so old Stripe code still works if it reads these options)
+    // We might want to sync 'tureserva_payment_settings_stripe'['secret_key'] to 'tureserva_stripe_secret_key' on save.
 }

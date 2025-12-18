@@ -147,6 +147,10 @@ function tureserva_init()
         'core-cupones.php',
         'core-payments.php',
     ];
+    
+    // API Tokens Manager
+    require_once TURESERVA_PATH . 'core/api_tokens/class-tureserva-api-token-manager.php';
+
     foreach ($core_files as $file) {
         require_once TURESERVA_PATH . 'core/' . $file;
     }

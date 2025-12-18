@@ -25,22 +25,69 @@ function tureserva_register_api_routes() {
     register_rest_route( $namespace, '/alojamientos', array(
         'methods'  => 'GET',
         'callback' => 'tureserva_api_get_alojamientos',
-        'permission_callback' => '__return_true'
+        'permission_callback' => function( $request ) {
+            return tureserva_api_validate_request( $request, 'read:reservas' ); // Or generic read permission
+        }
     ));
 
     // Verificar disponibilidad
     register_rest_route( $namespace, '/disponibilidad', array(
         'methods'  => 'GET',
         'callback' => 'tureserva_api_check_disponibilidad',
-        'permission_callback' => '__return_true'
+        'permission_callback' => function( $request ) {
+            return tureserva_api_validate_request( $request, 'read:alojamientos' );
+        }
     ));
 
     // Crear reserva
     register_rest_route( $namespace, '/reservar', array(
         'methods'  => 'POST',
         'callback' => 'tureserva_api_crear_reserva',
-        'permission_callback' => '__return_true'
+        'permission_callback' => function( $request ) {
+             return tureserva_api_validate_request( $request, 'write:reservas' );
+        }
     ));
+}
+
+// =======================================================
+// 🛡️ MIDDLEWARE DE AUTENTICACIÓN
+// =======================================================
+function tureserva_api_validate_request( $request, $required_scope = '' ) {
+    
+    // Allow if user is logged in admin (optional, for testing in browser easily)
+    // if ( current_user_can( 'administrator' ) ) return true;
+
+    $auth_header = $request->get_header( 'authorization' );
+    
+    if ( ! $auth_header ) {
+        // Also check param ?token=xyz for flexibility or 'X-API-KEY'
+        $token = $request->get_param( 'api_token' );
+    } else {
+        // "Bearer <token>"
+        if ( preg_match( '/Bearer\s+(.*)$/i', $auth_header, $matches ) ) {
+            $token = $matches[1];
+        } else {
+            $token = $auth_header;
+        }
+    }
+
+    if ( empty( $token ) ) {
+         return new WP_Error( 'rest_forbidden', 'Token de autenticación faltante.', array( 'status' => 401 ) );
+    }
+
+    $manager = new TuReserva_API_Token_Manager();
+    $token_row = $manager->validate_token( $token );
+
+    if ( ! $token_row ) {
+        return new WP_Error( 'rest_forbidden', 'Token inválido, expirado o revocado.', array( 'status' => 403 ) );
+    }
+
+    // Validate Scope
+    if ( $required_scope && ! $manager->has_scope( $token_row, $required_scope ) ) {
+        return new WP_Error( 'rest_forbidden', "Token no tiene permisos suficientes. Requerido: {$required_scope}", array( 'status' => 403 ) );
+    }
+
+    return true; // Authorized
 }
 
 // =======================================================
