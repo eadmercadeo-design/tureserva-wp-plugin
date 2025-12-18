@@ -30,7 +30,7 @@ function tureserva_register_cpt_cupones() {
         'labels'              => $labels,
         'public'              => false,  // No accesible públicamente en frontend
         'show_ui'             => true,   // Visible en admin
-        'show_in_menu'        => false,  // Se agregará manualmente al menú Reservas
+        'show_in_menu'        => 'edit.php?post_type=tureserva_reserva',  // Intentar anidar en Reservas
         'capability_type'     => 'post',
         'hierarchical'        => false,
         'supports'            => array('title'), // Solo título, el resto son metaboxes

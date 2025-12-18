@@ -17,16 +17,16 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 
     <div class="tureserva-reports-content">
         <div id="tab-dashboard" class="report-tab-content active">
-            <?php include_once 'dashboard.php'; ?>
+            <?php include_once __DIR__ . '/dashboard.php'; ?>
         </div>
         <div id="tab-reservas" class="report-tab-content" style="display:none;">
-            <?php include_once 'reservas.php'; ?>
+            <?php include_once __DIR__ . '/reservas.php'; ?>
         </div>
         <div id="tab-finanzas" class="report-tab-content" style="display:none;">
-            <?php include_once 'finanzas.php'; ?>
+            <?php include_once __DIR__ . '/finanzas.php'; ?>
         </div>
         <div id="tab-exportables" class="report-tab-content" style="display:none;">
-            <?php include_once 'exportables.php'; ?>
+            <?php include_once __DIR__ . '/exportables.php'; ?>
         </div>
     </div>
 </div>

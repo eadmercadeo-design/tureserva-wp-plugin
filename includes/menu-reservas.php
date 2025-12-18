@@ -153,9 +153,26 @@ function tureserva_admin_menu_reservas()
     );
 
     // =======================================================
-    // 📊 Informes
+    // ⚙️ Configuración Frecuencia iCal
     // =======================================================
     add_submenu_page(
+        'edit.php?post_type=tureserva_reserva',
+        __('Frecuencia de Sincronización (iCal)', 'tureserva'),
+        __('Frecuencia iCal', 'tureserva'),
+        'manage_options',
+        'tureserva-frecuencia-ical',
+        function() {
+            require_once TURESERVA_PATH . 'admin/pages/frecuencia-sincronizacion.php';
+        }
+    );
+
+    // =======================================================
+    // 📊 Informes
+    // =======================================================
+    // =======================================================
+    // 📊 Informes
+    // =======================================================
+    $hook_reportes = add_submenu_page(
         'edit.php?post_type=tureserva_reserva',
         __('Informes y estadísticas', 'tureserva'),
         __('Informes', 'tureserva'),
@@ -163,6 +180,7 @@ function tureserva_admin_menu_reservas()
         'tureserva-informes',
         'tureserva_informes_page_render'
     );
+    add_action("load-$hook_reportes", 'tureserva_informes_assets');
 
     // =======================================================
     // 🔌 Extensiones
@@ -177,6 +195,17 @@ function tureserva_admin_menu_reservas()
     );
 } // FIN DE LA FUNCIÓN PRINCIPAL
 
+// =======================================================
+// 🧩 ASSETS PARA REPORTES
+// =======================================================
+function tureserva_informes_assets() {
+    // Chart.js (CDN)
+    wp_enqueue_script( 'chartjs', 'https://cdn.jsdelivr.net/npm/chart.js', array(), '4.4.0', true );
+
+    // Module Assets
+    wp_enqueue_style( 'tureserva-reports-css', TURESERVA_URL . 'admin/reports/reports.css', array(), '1.0.0' );
+    wp_enqueue_script( 'tureserva-reports-js', TURESERVA_URL . 'admin/reports/reports.js', array('jquery', 'chartjs'), '1.0.0', true );
+}
 
 // =======================================================
 // 🧩 CALLBACKS — Placeholders
@@ -186,22 +215,9 @@ function tureserva_admin_menu_reservas()
     // Aseguramos cargar archivo
     require_once TURESERVA_PATH . 'admin/pages/clientes.php';
 
-
-
-
-
-
-
-
-
 function tureserva_informes_page_render() {
-    ?>
-    <div class="wrap">
-        <h1><?php _e('Informes y Estadísticas', 'tureserva'); ?></h1>
-        <p><?php _e('Visualización de informes del sistema de reservas.', 'tureserva'); ?></p>
-        <p><em><?php _e('Esta funcionalidad está en desarrollo.', 'tureserva'); ?></em></p>
-    </div>
-    <?php
+    // Cargar layout principal
+    require_once TURESERVA_PATH . 'admin/reports/layout.php';
 }
 
 function tureserva_extensiones_page_render() {

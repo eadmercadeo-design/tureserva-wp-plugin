@@ -10,6 +10,27 @@
 if (!defined('ABSPATH')) exit;
 
 function trs_ical_admin_render() {
+    // Ensure Repository is loaded BEFORE doing anything
+    if (!class_exists('TuReserva_Sync_Urls_Repository')) {
+        if (defined('TURESERVA_PATH')) {
+            $repo_path = TURESERVA_PATH . 'includes/repositories/class-tureserva-sync-urls-repository.php';
+            if (file_exists($repo_path)) {
+                require_once $repo_path;
+            } else {
+                 echo '<div class="notice notice-error"><p>Error crítico: Archivo de repositorio no encontrado en ' . esc_html($repo_path) . '</p></div>';
+                 return;
+            }
+        } else {
+            echo '<div class="notice notice-error"><p>Error crítico: TURESERVA_PATH no definido.</p></div>';
+            return;
+        }
+    }
+    
+    if (!class_exists('TuReserva_Sync_Urls_Repository')) {
+        echo '<div class="notice notice-error"><p>Error crítico: Clase TuReserva_Sync_Urls_Repository no cargada.</p></div>';
+        return;
+    }
+
     // 🕵️ VISTA DE EDICIÓN
     if (isset($_GET['view']) && $_GET['view'] === 'edit' && !empty($_GET['id'])) {
         trs_ical_admin_render_edit(intval($_GET['id']));
@@ -107,6 +128,9 @@ function trs_ical_admin_render() {
                     'posts_per_page' => -1,
                     'post_status' => 'publish'
                 ));
+                
+                // Instanciar repositorio una sola vez
+                $repo = new TuReserva_Sync_Urls_Repository();
 
                 if (empty($alojamientos)): ?>
                     <tr><td colspan="5" style="text-align:center; padding:20px;">No hay alojamientos creados.</td></tr>
@@ -116,13 +140,10 @@ function trs_ical_admin_render() {
                         $export_url = home_url('/?feed=tureserva.ics&ical_id=' . $aloj->ID);
                         
                         // Obtener estado real de la DB
-                        // Por ahora simulado o obtenido del repo
                         $sync_status = 'pending'; 
                         $last_sync = '';
                         
                         // Consultar DB para estado real
-                        global $wpdb;
-                        $repo = new TuReserva_Sync_Urls_Repository();
                         $row = $repo->get_sync_status( $aloj->ID );
                         
                         if ($row) {
@@ -161,7 +182,6 @@ function trs_ical_admin_render() {
                         <td>
                             <?php 
                             // 1. Obtener URLs del repositorio
-                            $repo = new TuReserva_Sync_Urls_Repository();
                             $imports = $repo->get_urls( $aloj->ID );
                             
                             if ( empty($imports) ): ?>

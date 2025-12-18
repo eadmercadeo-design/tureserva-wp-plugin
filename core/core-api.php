@@ -116,8 +116,9 @@ function tureserva_api_crear_reserva( $request ) {
             'telefono' => sanitize_text_field( $params['telefono'] ?? '' ),
             'notas'    => sanitize_textarea_field( $params['notas'] ?? '' ),
         ),
-        'estado' => 'pendiente',
-        'origen' => 'api',
+        'estado'      => 'pendiente',
+        'origen'      => 'api',
+        'coupon_code' => sanitize_text_field( $params['coupon_code'] ?? '' ),
     );
 
     // Verificar disponibilidad

@@ -31,6 +31,7 @@ function tureserva_crear_reserva( $args = array() ) {
         ),
         'estado'         => 'pendiente', // pendiente | confirmada | cancelada
         'origen'         => 'manual',    // manual | web | api
+        'coupon_code'    => '',
     );
 
     $data = wp_parse_args( $args, $defaults );
@@ -60,7 +61,8 @@ function tureserva_crear_reserva( $args = array() ) {
         $data['check_in'],
         $data['check_out'],
         $data['huespedes'],
-        $data['servicios']
+        $data['servicios'],
+        $data['coupon_code'] // 🎟️ Nuevo: pasar cupón
     );
 
     if ( empty( $precio['total'] ) || $precio['total'] <= 0 ) {
@@ -93,6 +95,19 @@ function tureserva_crear_reserva( $args = array() ) {
     update_post_meta( $reserva_id, '_tureserva_origen', sanitize_text_field( $data['origen'] ) );
     update_post_meta( $reserva_id, '_tureserva_precio_total', floatval( $precio['total'] ) );
     update_post_meta( $reserva_id, '_tureserva_desglose_precio', $precio );
+
+    update_post_meta( $reserva_id, '_tureserva_desglose_precio', $precio );
+
+    // 🎟️ Guardar datos del cupón si se aplicó
+    if ( ! empty( $precio['cupon'] ) ) {
+        update_post_meta( $reserva_id, '_tureserva_coupon_code', $precio['cupon']['code'] );
+        update_post_meta( $reserva_id, '_tureserva_discount_amount', $precio['cupon']['discount'] );
+        
+        // Incrementar uso
+        if ( function_exists('tureserva_increment_coupon_usage') ) {
+            tureserva_increment_coupon_usage( $precio['cupon']['id'] );
+        }
+    }
 
     do_action( 'tureserva_reserva_creada', $reserva_id, $data );
 
@@ -159,6 +174,21 @@ function tureserva_obtener_detalles_reserva( $reserva_id ) {
     );
 
     return apply_filters( 'tureserva_detalles_reserva', $datos, $reserva_id );
+}
+
+// =======================================================
+// 🗑️ REMOVER CUPÓN DE RESERVA
+// =======================================================
+function tureserva_remover_cupon_reserva( $reserva_id ) {
+    $coupon_code = get_post_meta( $reserva_id, '_tureserva_coupon_code', true );
+    if ( $coupon_code ) {
+        tureserva_decrement_coupon_usage( $reserva_id );
+        delete_post_meta( $reserva_id, '_tureserva_coupon_code' );
+        delete_post_meta( $reserva_id, '_tureserva_discount_amount' );
+        
+        // Recalcular precio sin cupón (esto requeriría obtener todos los datos de nuevo, 
+        // tal vez mejor dejar que se edite manualmente por ahora o implementar lógica completa de actualización)
+    }
 }
 
 // =======================================================

@@ -79,7 +79,8 @@ jQuery(document).ready(function ($) {
             ninos: btn.data('ninos'),
             nombre: prompt('Tu nombre completo:'),
             email: prompt('Tu correo electrónico:'),
-            telefono: prompt('Tu teléfono (opcional):')
+            telefono: prompt('Tu teléfono (opcional):'),
+            coupon_code: prompt('¿Tienes un cupón de descuento? (Ingrésalo aquí o deja vacío):')
         };
 
         if (!data.nombre || !data.email) {

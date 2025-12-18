@@ -31,13 +31,19 @@ class TuReserva_Background_Synchronizer {
         foreach ( $urls as $sync_id => $url ) {
             try {
                 // 2. Descargar contenido
+                $start_time = microtime( true );
                 $ical_content = $this->fetch_feed( $url );
+                $duration = microtime( true ) - $start_time;
 
                 // 3. Importar eventos
                 $importer->parse_and_import( $ical_content, $room_id, $sync_id );
                 
                 // Actualizar estado en DB (éxito)
                 $repo->update_sync_status( $sync_id, 'success' );
+                
+                // 🆕 LOGGING
+                $logger = new TuReserva_Sync_Logger();
+                $logger->log( $room_id, $url, $duration, 'success', 'Sincronización exitosa.' );
                 
             } catch ( Exception $e ) {
                 // Registrar error
@@ -46,6 +52,10 @@ class TuReserva_Background_Synchronizer {
                 
                 // Actualizar estado en DB (error)
                 $repo->update_sync_status( $sync_id, 'error', $error_msg );
+                
+                // 🆕 LOGGING
+                $logger = new TuReserva_Sync_Logger();
+                $logger->log( $room_id, $url, 0, 'error', $error_msg );
             }
         }
 

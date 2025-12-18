@@ -17,7 +17,7 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 // =======================================================
 // 🔹 FUNCIÓN PRINCIPAL DE CÁLCULO DE PRECIO
 // =======================================================
-function tureserva_calcular_precio_total( $alojamiento_id, $check_in, $check_out, $huespedes = array(), $servicios_ids = array() ) {
+function tureserva_calcular_precio_total( $alojamiento_id, $check_in, $check_out, $huespedes = array(), $servicios_ids = array(), $coupon_code = '' ) {
 
     $noches = tureserva_calcular_noches( $check_in, $check_out );
     if ( $noches <= 0 ) return 0;
@@ -90,20 +90,50 @@ function tureserva_calcular_precio_total( $alojamiento_id, $check_in, $check_out
     }
 
     // ===============================
-    // 🔸 Cálculo final
+    // 🔸 Cálculo final (Subtotal)
     // ===============================
-    // ===============================
-    // 🔸 Cálculo final
-    // ===============================
-    // Si usamos tarifa avanzada, el precio ya incluye la lógica de temporada/variables
     if ($usando_tarifa_avanzada) {
         $subtotal = ($precio_base_final * $noches) + $costo_huespedes + $costo_servicios;
     } else {
-        // Modelo simple
         $subtotal = ($precio_base_final * $noches) + $costo_huespedes + $costo_servicios;
     }
-    $impuestos = tureserva_calcular_impuestos( $subtotal );
 
+    // ===============================
+    // 🎟️ APLICAR CUPÓN (Si existe)
+    // ===============================
+    $descuento = 0;
+    $coupon_data = null;
+    $coupon_error = null;
+
+    if ( ! empty( $coupon_code ) && function_exists('tureserva_validate_coupon') ) {
+        $res_data = [
+            'alojamiento_id' => $alojamiento_id,
+            'check_in'       => $check_in,
+            'check_out'      => $check_out,
+            'noches'         => $noches,
+            'amount'         => $subtotal // Validar reglas de monto mínimo si existieran
+        ];
+        
+        $coupon = tureserva_validate_coupon( $coupon_code, $res_data );
+
+        if ( is_wp_error( $coupon ) ) {
+            $coupon_error = $coupon->get_error_message();
+        } else {
+            $descuento = tureserva_calculate_discount( $coupon->ID, $subtotal, $noches );
+            $subtotal_con_descuento = max( 0, $subtotal - $descuento );
+            $coupon_data = [
+                'code' => $coupon_code,
+                'id' => $coupon->ID,
+                'discount' => $descuento
+            ];
+            // Actualizar subtotal para el cálculo de impuestos
+            // OJO: ¿Los impuestos se calculan antes o después del descuento?
+            // Generalmente impuestos se calculan sobre el precio final a pagar.
+            $subtotal = $subtotal_con_descuento; 
+        }
+    }
+
+    $impuestos = tureserva_calcular_impuestos( $subtotal );
     $total = $subtotal + $impuestos;
 
     return array(
@@ -114,6 +144,9 @@ function tureserva_calcular_precio_total( $alojamiento_id, $check_in, $check_out
         'ajuste_temporada' => $ajuste_temporada,
         'costo_huespedes'  => $costo_huespedes,
         'costo_servicios'  => $costo_servicios,
+        'cupon'            => $coupon_data,
+        'error_cupon'      => $coupon_error,
+        'descuento'        => $descuento,
         'subtotal'         => $subtotal,
         'impuestos'        => $impuestos,
         'total'            => $total,

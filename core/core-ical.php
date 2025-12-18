@@ -35,43 +35,6 @@ function trs_ical_generate_feed($post_id) {
     // 1. Verificar CPT
     $type = get_post_type($post_id);
     if ($type !== 'trs_alojamiento' && $type !== 'tureserva_alojamiento') {
-<?php
-/**
- * ==========================================================
- * CORE: Sincronización iCal — TuReserva (Renamed Functions)
- * ==========================================================
- */
-
-if (!defined('ABSPATH')) exit;
-
-// =======================================================
-// 1. HOOKS BÁSICOS
-// =======================================================
-
-function trs_ical_register_query_vars($vars) {
-    $vars[] = 'tureserva_ical';
-    $vars[] = 'ical_id';
-    return $vars;
-}
-add_filter('query_vars', 'trs_ical_register_query_vars');
-
-function trs_ical_feed_handler() {
-    if (get_query_var('tureserva_ical') == 'export' && get_query_var('ical_id')) {
-        $post_id = intval(get_query_var('ical_id'));
-        trs_ical_generate_feed($post_id);
-        exit;
-    }
-}
-add_action('template_redirect', 'trs_ical_feed_handler');
-
-// =======================================================
-// 2. LÓGICA DE EXPORTACIÓN
-// =======================================================
-
-function trs_ical_generate_feed($post_id) {
-    // 1. Verificar CPT
-    $type = get_post_type($post_id);
-    if ($type !== 'trs_alojamiento' && $type !== 'tureserva_alojamiento') {
         status_header(404);
         wp_die('Alojamiento no válido.', 'Error iCal', ['response' => 404]);
     }
@@ -121,7 +84,7 @@ function trs_ical_generate_feed($post_id) {
             if ($checkin && $checkout) {
                 $dtstart = date('Ymd', strtotime($checkin));
                 $dtend = date('Ymd', strtotime($checkout)); 
-
+                
                 $uid_string = $reserva->ID . $checkin . $checkout . site_url();
                 $uid = 'trs-' . $reserva->ID . '-' . md5($uid_string) . '@' . $_SERVER['HTTP_HOST'];
                 $dtstamp = gmdate('Ymd\THis\Z'); 

@@ -92,9 +92,9 @@ function tureserva_init()
         require_once TURESERVA_PATH . 'includes/menu-calendario.php';
         require_once TURESERVA_PATH . 'includes/menu-reservas.php';
         require_once TURESERVA_PATH . 'includes/menu-notificaciones.php';
-        require_once TURESERVA_PATH . 'includes/menu-reportes.php';
+        // require_once TURESERVA_PATH . 'includes/menu-reportes.php'; // 🗑️ Eliminado por unificación
         require_once TURESERVA_PATH . 'includes/menu-tokens.php';
-        require_once TURESERVA_PATH . 'includes/menu-cron.php';
+        // require_once TURESERVA_PATH . 'includes/menu-cron.php'; // 🗑️ Eliminado por unificación
         require_once TURESERVA_PATH . 'includes/menu-payments.php';
 
         // Diseños
@@ -121,7 +121,7 @@ function tureserva_init()
         require_once TURESERVA_PATH . 'includes/meta-boxes-impuestos.php';
 
         // Core iCal
-        // require_once TURESERVA_PATH . 'core/core-ical.php';
+        require_once TURESERVA_PATH . 'core/core-ical.php';
 
         // Páginas especiales del sistema
         require_once TURESERVA_PATH . 'includes/setup-pages.php';
@@ -144,6 +144,7 @@ function tureserva_init()
         'core-auth.php',
         'core-sync.php',
         'core-cron.php',
+        'core-cupones.php',
         'core-payments.php',
     ];
     foreach ($core_files as $file) {
@@ -180,6 +181,9 @@ function tureserva_init()
         'class-tureserva-ical-importer.php',
         'class-tureserva-ical-exporter.php',
         'class-tureserva-calendar-feed.php',
+        'class-tureserva-sync-logger.php', // 🆕 Logger
+        'class-tureserva-sync-scheduler.php', // 🆕 Scheduler
+        'class-tureserva-sync-ajax.php', // 🆕 AJAX Handler
     ];
     foreach ($sync_files as $file) {
         require_once TURESERVA_PATH . 'includes/sync/' . $file;
@@ -188,6 +192,7 @@ function tureserva_init()
     // Initialize Global Instances
     new TuReserva_Ical_Cron();
     new TuReserva_Calendar_Feed();
+    new TuReserva_Sync_Scheduler(); // 🆕 Init Scheduler
 
     load_plugin_textdomain('tureserva', false, dirname(plugin_basename(__FILE__)) . '/languages');
 }
